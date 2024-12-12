@@ -1,0 +1,113 @@
+
+---
+
+### **Gerador Personalizado de Exercícios em JavaScript**
+**Descrição Geral:**  
+Um programa interativo que permite aos usuários gerar exercícios personalizados em JavaScript com base no nível de dificuldade, na área de especialização (frontend, backend, full stack, ou mobile) e no tipo de desafio desejado. O sistema utiliza a API da OpenAI para criar problemas adaptados às preferências do usuário, apresentando-os diretamente em uma interface intuitiva e funcional.
+
+---
+
+### **Funcionalidades Principais:**
+
+1. **Filtro de Nível de Dificuldade:**  
+   - **Opções:** Iniciante, Intermediário, Avançado.  
+   - O sistema ajusta a complexidade dos exercícios com base no nível escolhido, incluindo o tipo de lógica, a profundidade dos conceitos abordados, e o tamanho do desafio.
+
+2. **Seleção da Vertical de Desenvolvimento:**  
+   - **Opções:**  
+     - **Frontend:** Foco em manipulação de DOM, eventos, CSS dinâmico, etc.  
+     - **Backend:** Desafios envolvendo lógica de servidor, APIs, e banco de dados.  
+     - **Full Stack:** Combinação de frontend e backend.  
+     - **Mobile:** Exercícios relacionados a desenvolvimento híbrido ou focado em frameworks como React Native.  
+   - Essa escolha direciona o tipo de problema gerado.
+
+3. **Geração de Exercícios Personalizados:**  
+   - A aplicação utiliza a API da OpenAI para criar exercícios adaptados às preferências do usuário.  
+   - Cada exercício inclui:  
+     - **Descrição:** Contextualizando o problema.  
+     - **Objetivo:** O que o usuário precisa alcançar.  
+     - **Dicas (Opcional):** Ajuda para usuários que estão com dificuldades.  
+     - **Teste de Entrada/Saída (Opcional):** Definir inputs e outputs esperados para validar a solução.
+
+4. **Interface de Apresentação do Exercício:**  
+   - Exibição amigável do enunciado do exercício.
+   - Um espaço para que o usuário possa escrever o código e executar diretamente no navegador.  
+   - Opções para pedir ajuda (ex: gerar dicas automáticas ou exemplos de solução parciais).
+
+5. **Integração com Feedback:**  
+   - Após resolver o exercício, o usuário pode comparar sua solução com uma resposta gerada pelo sistema.  
+   - A funcionalidade inclui feedback sobre boas práticas e melhorias no código.
+
+---
+
+### **Funcionalidades Adicionais (Extras):**
+
+- **Histórico de Exercícios:** Permitir que o usuário salve ou acesse exercícios já resolvidos.  
+- **Sistema de Pontuação ou Progresso:** Motivar os usuários a resolver mais desafios.  
+- **Modo Competitivo:** Opção para comparar tempos ou soluções com outros usuários.  
+- **Exportação de Exercícios:** Salvar o exercício gerado para uso offline ou compartilhamento.  
+
+---
+
+### **Tecnologias e Ferramentas Sugeridas:**
+
+- **Frontend:**  
+  - React.js para construção da interface.  
+  - Ace.js ou CodeMirror para o editor de código embutido.  
+
+- **Backend:**  
+  - Node.js + Express para gerenciar requisições à API da OpenAI e fornecer exercícios gerados.  
+
+- **API:**  
+  - OpenAI API para geração dinâmica dos exercícios.  
+
+- **Banco de Dados:**  
+  - MongoDB para armazenar histórico de exercícios, progresso do usuário, etc.  
+
+- **Hospedagem:**  
+  - Frontend: Vercel ou Netlify.  
+  - Backend: Heroku ou AWS.  
+
+---
+
+### **Fluxo de Uso do Sistema:**
+
+1. O usuário acessa o sistema e seleciona as preferências:  
+   - Nível de dificuldade.  
+   - Vertical desejada (frontend, backend, etc.).  
+
+2. O sistema processa as entradas e faz uma requisição à API da OpenAI, fornecendo os parâmetros necessários para gerar o exercício.  
+
+3. O exercício é apresentado na interface, junto com o editor de código integrado para o usuário resolver o problema.  
+
+4. Após o envio da solução, o sistema pode:  
+   - Validar a resposta (se houver testes predefinidos).  
+   - Oferecer feedback comparando com uma solução modelo.  
+
+5. O progresso do usuário é salvo para futuras consultas.  
+
+---
+
+### **Exemplo de Uso:**
+
+**Cenário:**  
+Um desenvolvedor iniciante quer praticar lógica de manipulação de DOM em JavaScript.  
+
+1. Ele seleciona:  
+   - **Nível de Dificuldade:** Iniciante.  
+   - **Vertical:** Frontend.  
+
+2. O sistema gera o seguinte exercício:  
+
+**Enunciado:**  
+"Crie uma página HTML com um botão. Ao clicar no botão, o texto de um parágrafo na página deve mudar para 'Botão Clicado!'. Use apenas JavaScript puro para implementar essa funcionalidade."  
+
+**Dicas (Opcional):**  
+- Use `document.querySelector()` para selecionar o parágrafo e o botão.  
+- Adicione um evento de clique ao botão usando `addEventListener()`.  
+
+3. Ele resolve o problema no editor integrado e verifica o feedback.  
+
+---
+
+Este projeto combina praticidade, aprendizado e tecnologia de ponta, sendo ideal para desenvolvedores que desejam melhorar suas habilidades de forma personalizada.
