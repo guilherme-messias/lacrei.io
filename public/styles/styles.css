@@ -1,11 +1,85 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: "Montserrat", sans-serif;
-    background-color: #212227;
+  font-family: "Montserrat", sans-serif;
+  background-color: #212227;
 }
 
+header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+header a {
+  margin-right: 15px;
+  color: #8693ab;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+header a:hover {
+  color: #637074;
+}
+
+main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+main #title {
+  height: 45vh;
+  flex-direction: column;
+  margin-left: 45px;
+}
+
+main h1 {
+  color: #aab9cf;
+  font-size: 40px;
+  margin: 20px 0;
+  order: 1;
+}
+
+main h2 {
+  color: #aab9cf;
+  font-size: 35px;
+  margin: 20px 0;
+  order: 2;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+}
+
+main input[type="button"] {
+  background-color: #8693ab;
+  font-family: "Fira Code", monospace;
+  color: #212227;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+  order: 3;
+}
+
+input[type="button"]:hover {
+  background-color: #637074;
+}
+
+img {
+  width: auto;
+  height: auto;
+  float: right;
+  margin-left: auto;
+  margin-right: 15px;
+  order: 4;
+}
