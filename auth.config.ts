@@ -5,13 +5,13 @@ import SpotifyProvider from 'next-auth/providers/spotify'
 export const authConfig = {
   providers: [
     GoogleProvider({
-      clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
+      clientId: process.env.AUTH_GOOGLE_ID ?? '',
+      clientSecret: process.env.AUTH_GOOGLE_SECRET ?? '',
       allowDangerousEmailAccountLinking: true,
     }),
     SpotifyProvider({
-      clientId: process.env.SPOTIFY_CLIENT_ID ?? '',
-      clientSecret: process.env.SPOTIFY_CLIENT_SECRET ?? '',
+      clientId: process.env.AUTH_SPOTIFY_ID ?? '',
+      clientSecret: process.env.AUTH_SPOTIFY_SECRET ?? '',
       allowDangerousEmailAccountLinking: true,
     }),
   ],
