@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { addDays, parseISO } from 'date-fns'
+import { addDays, differenceInDays, parseISO } from 'date-fns'
 
 vi.mock('@/auth', () => ({ auth: vi.fn() }))
 vi.mock('@/lib/prisma', () => ({
@@ -9,6 +9,8 @@ vi.mock('@/lib/prisma', () => ({
     },
     capsule: {
       create: vi.fn(),
+      findMany: vi.fn(),
+      count: vi.fn(),
     },
   },
 }))
@@ -16,7 +18,7 @@ vi.mock('@/lib/prisma', () => ({
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { NextRequest } from 'next/server'
-import { POST } from './route'
+import { GET, POST } from './route'
 
 const TRACK_ID = '550e8400-e29b-41d4-a716-446655440000'
 const USER_ID = 'user-123'
@@ -47,6 +49,19 @@ const mockCapsule = {
   updatedAt: FIXED_NOW,
 }
 
+const mockCapsuleWithTrack = {
+  ...mockCapsule,
+  track: mockTrack,
+}
+
+function createGetRequest(params: Record<string, string> = {}) {
+  const url = new URL('http://localhost/api/capsules')
+  for (const [key, value] of Object.entries(params)) {
+    url.searchParams.set(key, value)
+  }
+  return new NextRequest(url)
+}
+
 function createPostRequest(body: object) {
   return new NextRequest('http://localhost/api/capsules', {
     method: 'POST',
@@ -75,137 +90,292 @@ describe('/api/capsules', () => {
     vi.useRealTimers()
   })
 
-  it('deve retornar 401 se não autenticado', async () => {
-    ;(auth as any).mockResolvedValue(null)
+  describe('GET', () => {
+    it('deve retornar 401 se não autenticado', async () => {
+      ;(auth as any).mockResolvedValue(null)
 
-    const req = createPostRequest(validPayload())
-    const res = await POST(req)
+      const req = createGetRequest()
+      const res = await GET(req)
 
-    expect(res.status).toBe(401)
-    const data = await res.json()
-    expect(data).toEqual({ error: 'Não autorizado' })
-    expect(prisma.track.findUnique).not.toHaveBeenCalled()
-    expect(prisma.capsule.create).not.toHaveBeenCalled()
-  })
-
-  it('deve retornar 401 se sessão não tiver user.id', async () => {
-    ;(auth as any).mockResolvedValue({ user: {} })
-
-    const req = createPostRequest(validPayload())
-    const res = await POST(req)
-
-    expect(res.status).toBe(401)
-    expect(prisma.capsule.create).not.toHaveBeenCalled()
-  })
-
-  it('deve retornar 400 se message estiver ausente', async () => {
-    ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-
-    const req = createPostRequest(validPayload({ message: undefined }))
-    const res = await POST(req)
-
-    expect(res.status).toBe(400)
-    const data = await res.json()
-    expect(data.error).toBe('Parâmetro inválido')
-    expect(data.details.fieldErrors.message).toBeDefined()
-    expect(prisma.capsule.create).not.toHaveBeenCalled()
-  })
-
-  it('deve retornar 400 se message exceder 500 caracteres', async () => {
-    ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-
-    const req = createPostRequest(validPayload({ message: 'a'.repeat(501) }))
-    const res = await POST(req)
-
-    expect(res.status).toBe(400)
-    const data = await res.json()
-    expect(data.error).toBe('Parâmetro inválido')
-    expect(data.details.fieldErrors.message).toBeDefined()
-  })
-
-  it('deve retornar 400 se trackId não for UUID', async () => {
-    ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-
-    const req = createPostRequest(validPayload({ trackId: 'invalid-id' }))
-    const res = await POST(req)
-
-    expect(res.status).toBe(400)
-    const data = await res.json()
-    expect(data.error).toBe('Parâmetro inválido')
-    expect(data.details.fieldErrors.trackId).toBeDefined()
-  })
-
-  it('deve retornar 400 se openAt tiver formato inválido', async () => {
-    ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-
-    const req = createPostRequest(validPayload({ openAt: '07/06/2026' }))
-    const res = await POST(req)
-
-    expect(res.status).toBe(400)
-    const data = await res.json()
-    expect(data.error).toBe('Parâmetro inválido')
-    expect(data.details.fieldErrors.openAt).toBeDefined()
-  })
-
-  it('deve retornar 400 se openAt for menos de 7 dias no futuro', async () => {
-    ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-
-    const tooSoon = addDays(FIXED_NOW, 6).toISOString().slice(0, 10)
-    const req = createPostRequest(validPayload({ openAt: tooSoon }))
-    const res = await POST(req)
-
-    expect(res.status).toBe(400)
-    const data = await res.json()
-    expect(data).toEqual({
-      error: 'A data deve ser pelo menos 7 dias no futuro',
-      code: 'DATE_TOO_SOON',
-    })
-    expect(prisma.track.findUnique).not.toHaveBeenCalled()
-  })
-
-  it('deve retornar 404 se faixa não existir', async () => {
-    ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-    ;(prisma.track.findUnique as any).mockResolvedValue(null)
-
-    const req = createPostRequest(validPayload())
-    const res = await POST(req)
-
-    expect(res.status).toBe(404)
-    const data = await res.json()
-    expect(data).toEqual({ error: 'Faixa não encontrada', code: 'TRACK_NOT_FOUND' })
-    expect(prisma.capsule.create).not.toHaveBeenCalled()
-  })
-
-  it('deve retornar 201 e criar cápsula com payload válido', async () => {
-    ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-    ;(prisma.track.findUnique as any).mockResolvedValue(mockTrack)
-    ;(prisma.capsule.create as any).mockResolvedValue(mockCapsule)
-
-    const payload = validPayload()
-    const req = createPostRequest(payload)
-    const res = await POST(req)
-
-    expect(res.status).toBe(201)
-    const data = await res.json()
-    expect(data.capsule).toEqual({
-      ...mockCapsule,
-      openAt: mockCapsule.openAt.toISOString(),
-      createdAt: mockCapsule.createdAt.toISOString(),
-      updatedAt: mockCapsule.updatedAt.toISOString(),
+      expect(res.status).toBe(401)
+      const data = await res.json()
+      expect(data).toEqual({ error: 'Não autorizado' })
+      expect(prisma.capsule.findMany).not.toHaveBeenCalled()
+      expect(prisma.capsule.count).not.toHaveBeenCalled()
     })
 
-    expect(prisma.track.findUnique).toHaveBeenCalledWith({
-      where: { id: TRACK_ID },
+    it('deve retornar 401 se sessão não tiver user.id', async () => {
+      ;(auth as any).mockResolvedValue({ user: {} })
+
+      const req = createGetRequest()
+      const res = await GET(req)
+
+      expect(res.status).toBe(401)
+      expect(prisma.capsule.findMany).not.toHaveBeenCalled()
     })
 
-    expect(prisma.capsule.create).toHaveBeenCalledWith({
-      data: {
-        userId: USER_ID,
-        trackId: TRACK_ID,
-        message: payload.message,
-        openAt: parseISO(VALID_OPEN_AT),
-        status: 'sealed',
-      },
+    it('deve retornar 400 se status for inválido', async () => {
+      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+
+      const req = createGetRequest({ status: 'invalid' })
+      const res = await GET(req)
+
+      expect(res.status).toBe(400)
+      const data = await res.json()
+      expect(data.error).toBe('Parâmetro inválido')
+      expect(data.details.fieldErrors.status).toBeDefined()
+    })
+
+    it('deve retornar 400 se page for inválida', async () => {
+      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+
+      const req = createGetRequest({ page: '0' })
+      const res = await GET(req)
+
+      expect(res.status).toBe(400)
+      const data = await res.json()
+      expect(data.error).toBe('Parâmetro inválido')
+      expect(data.details.fieldErrors.page).toBeDefined()
+    })
+
+    it('deve retornar 400 se limit exceder o máximo', async () => {
+      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+
+      const req = createGetRequest({ limit: '51' })
+      const res = await GET(req)
+
+      expect(res.status).toBe(400)
+      const data = await res.json()
+      expect(data.error).toBe('Parâmetro inválido')
+      expect(data.details.fieldErrors.limit).toBeDefined()
+    })
+
+    it('deve retornar 200 com cápsulas e paginação padrão', async () => {
+      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+      ;(prisma.capsule.findMany as any).mockResolvedValue([mockCapsuleWithTrack])
+      ;(prisma.capsule.count as any).mockResolvedValue(1)
+
+      const req = createGetRequest()
+      const res = await GET(req)
+
+      expect(res.status).toBe(200)
+      const data = await res.json()
+      expect(data.capsules).toHaveLength(1)
+      expect(data.capsules[0].daysUntilOpen).toBe(
+        differenceInDays(mockCapsule.openAt, FIXED_NOW)
+      )
+      expect(data.capsules[0].track).toEqual({
+        ...mockTrack,
+        cachedAt: mockTrack.cachedAt.toISOString(),
+      })
+      expect(data.pagination).toEqual({
+        page: 1,
+        limit: 20,
+        total: 1,
+        totalPages: 1,
+      })
+
+      expect(prisma.capsule.findMany).toHaveBeenCalledWith({
+        where: { userId: USER_ID },
+        include: { track: true },
+        skip: 0,
+        take: 20,
+        orderBy: { createdAt: 'desc' },
+      })
+      expect(prisma.capsule.count).toHaveBeenCalledWith({
+        where: { userId: USER_ID },
+      })
+    })
+
+    it('deve filtrar por status sealed', async () => {
+      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+      ;(prisma.capsule.findMany as any).mockResolvedValue([])
+      ;(prisma.capsule.count as any).mockResolvedValue(0)
+
+      const req = createGetRequest({ status: 'sealed' })
+      const res = await GET(req)
+
+      expect(res.status).toBe(200)
+      expect(prisma.capsule.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { userId: USER_ID, status: 'sealed' },
+        })
+      )
+      expect(prisma.capsule.count).toHaveBeenCalledWith({
+        where: { userId: USER_ID, status: 'sealed' },
+      })
+    })
+
+    it('deve aplicar paginação customizada', async () => {
+      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+      ;(prisma.capsule.findMany as any).mockResolvedValue([])
+      ;(prisma.capsule.count as any).mockResolvedValue(45)
+
+      const req = createGetRequest({ page: '2', limit: '10' })
+      const res = await GET(req)
+
+      expect(res.status).toBe(200)
+      const data = await res.json()
+      expect(data.pagination).toEqual({
+        page: 2,
+        limit: 10,
+        total: 45,
+        totalPages: 5,
+      })
+      expect(prisma.capsule.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ skip: 10, take: 10 })
+      )
+    })
+
+    it('deve retornar daysUntilOpen null para cápsulas entregues', async () => {
+      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+      ;(prisma.capsule.findMany as any).mockResolvedValue([
+        { ...mockCapsuleWithTrack, status: 'delivered' },
+      ])
+      ;(prisma.capsule.count as any).mockResolvedValue(1)
+
+      const req = createGetRequest({ status: 'delivered' })
+      const res = await GET(req)
+
+      expect(res.status).toBe(200)
+      const data = await res.json()
+      expect(data.capsules[0].daysUntilOpen).toBeNull()
+    })
+  })
+
+  describe('POST', () => {
+    it('deve retornar 401 se não autenticado', async () => {
+      ;(auth as any).mockResolvedValue(null)
+
+      const req = createPostRequest(validPayload())
+      const res = await POST(req)
+
+      expect(res.status).toBe(401)
+      const data = await res.json()
+      expect(data).toEqual({ error: 'Não autorizado' })
+      expect(prisma.track.findUnique).not.toHaveBeenCalled()
+      expect(prisma.capsule.create).not.toHaveBeenCalled()
+    })
+
+    it('deve retornar 401 se sessão não tiver user.id', async () => {
+      ;(auth as any).mockResolvedValue({ user: {} })
+
+      const req = createPostRequest(validPayload())
+      const res = await POST(req)
+
+      expect(res.status).toBe(401)
+      expect(prisma.capsule.create).not.toHaveBeenCalled()
+    })
+
+    it('deve retornar 400 se message estiver ausente', async () => {
+      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+
+      const req = createPostRequest(validPayload({ message: undefined }))
+      const res = await POST(req)
+
+      expect(res.status).toBe(400)
+      const data = await res.json()
+      expect(data.error).toBe('Parâmetro inválido')
+      expect(data.details.fieldErrors.message).toBeDefined()
+      expect(prisma.capsule.create).not.toHaveBeenCalled()
+    })
+
+    it('deve retornar 400 se message exceder 500 caracteres', async () => {
+      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+
+      const req = createPostRequest(validPayload({ message: 'a'.repeat(501) }))
+      const res = await POST(req)
+
+      expect(res.status).toBe(400)
+      const data = await res.json()
+      expect(data.error).toBe('Parâmetro inválido')
+      expect(data.details.fieldErrors.message).toBeDefined()
+    })
+
+    it('deve retornar 400 se trackId não for UUID', async () => {
+      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+
+      const req = createPostRequest(validPayload({ trackId: 'invalid-id' }))
+      const res = await POST(req)
+
+      expect(res.status).toBe(400)
+      const data = await res.json()
+      expect(data.error).toBe('Parâmetro inválido')
+      expect(data.details.fieldErrors.trackId).toBeDefined()
+    })
+
+    it('deve retornar 400 se openAt tiver formato inválido', async () => {
+      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+
+      const req = createPostRequest(validPayload({ openAt: '07/06/2026' }))
+      const res = await POST(req)
+
+      expect(res.status).toBe(400)
+      const data = await res.json()
+      expect(data.error).toBe('Parâmetro inválido')
+      expect(data.details.fieldErrors.openAt).toBeDefined()
+    })
+
+    it('deve retornar 400 se openAt for menos de 7 dias no futuro', async () => {
+      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+
+      const tooSoon = addDays(FIXED_NOW, 6).toISOString().slice(0, 10)
+      const req = createPostRequest(validPayload({ openAt: tooSoon }))
+      const res = await POST(req)
+
+      expect(res.status).toBe(400)
+      const data = await res.json()
+      expect(data).toEqual({
+        error: 'A data deve ser pelo menos 7 dias no futuro',
+        code: 'DATE_TOO_SOON',
+      })
+      expect(prisma.track.findUnique).not.toHaveBeenCalled()
+    })
+
+    it('deve retornar 404 se faixa não existir', async () => {
+      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+      ;(prisma.track.findUnique as any).mockResolvedValue(null)
+
+      const req = createPostRequest(validPayload())
+      const res = await POST(req)
+
+      expect(res.status).toBe(404)
+      const data = await res.json()
+      expect(data).toEqual({ error: 'Faixa não encontrada', code: 'TRACK_NOT_FOUND' })
+      expect(prisma.capsule.create).not.toHaveBeenCalled()
+    })
+
+    it('deve retornar 201 e criar cápsula com payload válido', async () => {
+      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+      ;(prisma.track.findUnique as any).mockResolvedValue(mockTrack)
+      ;(prisma.capsule.create as any).mockResolvedValue(mockCapsule)
+
+      const payload = validPayload()
+      const req = createPostRequest(payload)
+      const res = await POST(req)
+
+      expect(res.status).toBe(201)
+      const data = await res.json()
+      expect(data.capsule).toEqual({
+        ...mockCapsule,
+        openAt: mockCapsule.openAt.toISOString(),
+        createdAt: mockCapsule.createdAt.toISOString(),
+        updatedAt: mockCapsule.updatedAt.toISOString(),
+      })
+
+      expect(prisma.track.findUnique).toHaveBeenCalledWith({
+        where: { id: TRACK_ID },
+      })
+
+      expect(prisma.capsule.create).toHaveBeenCalledWith({
+        data: {
+          userId: USER_ID,
+          trackId: TRACK_ID,
+          message: payload.message,
+          openAt: parseISO(VALID_OPEN_AT),
+          status: 'sealed',
+        },
+      })
     })
   })
 })
