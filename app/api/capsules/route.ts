@@ -4,11 +4,34 @@ import { addDays, isAfter, parseISO } from "date-fns";
 import { NextRequest, NextResponse } from "next/server";
 import z from "zod";
 
+const querySchema = z.object({
+  status: z.enum(['sealed', 'delivered', 'all']).default('all'),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+})
+
 const createCapsuleSchema = z.object({
   message: z.string().min(1).max(500).trim(),
   trackId: z.uuid(),
   openAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato inválido. Use YYYY-MM-DD'),
 })
+
+export async function GET(request: NextRequest) { 
+    const session = await auth()
+
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+    }
+
+    const query = request.nextUrl.searchParams
+    const parsed = querySchema.safeParse(Object.fromEntries(query.entries()))
+
+    if (!parsed.success) {
+        return NextResponse.json({ error: 'Parâmetro inválido', details: z.flattenError(parsed.error) }, { status: 400 })
+    }
+}
+
+
 
 export async function POST(request: NextRequest) { 
     const session = await auth()
