@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const trackData = prisma.track.upsert({
+  const trackData = await prisma.track.upsert({
     where: {
       musicbrainzId: parsed.data.musicbrainzId || '',
     },
