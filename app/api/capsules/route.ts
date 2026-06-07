@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import { addDays, isAfter, parseISO } from "date-fns";
 import { NextRequest, NextResponse } from "next/server";
 import z from "zod";
@@ -12,7 +13,7 @@ const createCapsuleSchema = z.object({
 export async function POST(request: NextRequest) { 
     const session = await auth()
 
-    if (!session) {
+    if (!session?.user?.id) {
         return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
   
@@ -29,4 +30,28 @@ export async function POST(request: NextRequest) {
   if (!isAfter(openAtDate, minDate)) {
     return NextResponse.json({ error: 'A data deve ser pelo menos 7 dias no futuro', code: 'DATE_TOO_SOON' }, { status: 400 })
   }
+
+  const track = await prisma.track.findUnique({
+    where: {
+      id: parsed.data.trackId,
+    },
+  })
+
+  if (!track) {
+    return NextResponse.json({ error: 'Faixa não encontrada', code: 'TRACK_NOT_FOUND' }, { status: 404 })
+  }
+
+  const capsule = await prisma.capsule.create({
+    data: {
+      userId: session.user.id,
+      trackId: track.id,
+      message: parsed.data.message,
+      openAt: openAtDate,
+      status: 'sealed' as const,
+    },
+  })
+
+  // TODO: enviar email de confirmação
+
+  return NextResponse.json({ capsule: capsule }, { status: 201 })
 }
