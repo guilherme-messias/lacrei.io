@@ -50,3 +50,43 @@ export async function GET(
 
   return NextResponse.json({ capsule }, { status: 200 })
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  }
+
+  const { id } = await params
+
+  const capsule = await prisma.capsule.findUnique({
+    where: { id },
+  })
+
+  if (!capsule) {
+    return NextResponse.json(
+      { error: 'Cápsula não encontrada' },
+      { status: 404 }
+    )
+  }
+
+  if (capsule.status === 'delivered') {
+    return NextResponse.json(
+      { error: 'Cápsulas já entregues não podem ser excluídas' },
+      { status: 409 }
+    )
+  }
+
+  await prisma.capsule.delete({
+    where: { id },
+  })
+
+  return NextResponse.json(
+    { message: 'Cápsula deletada com sucesso' },
+    { status: 200 }
+  )
+}

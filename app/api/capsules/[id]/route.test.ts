@@ -6,6 +6,7 @@ vi.mock('@/lib/prisma', () => ({
   prisma: {
     capsule: {
       findUnique: vi.fn(),
+      delete: vi.fn(),
     },
   },
 }))
@@ -13,7 +14,7 @@ vi.mock('@/lib/prisma', () => ({
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { NextRequest } from 'next/server'
-import { GET } from './route'
+import { GET, DELETE } from './route'
 
 const CAPSULE_ID = 'capsule-1'
 const TRACK_ID = '550e8400-e29b-41d4-a716-446655440000'
@@ -55,6 +56,12 @@ function createGetRequest(capsuleId: string) {
   return new NextRequest(`http://localhost/api/capsules/${capsuleId}`)
 }
 
+function createDeleteRequest(capsuleId: string) {
+  return new NextRequest(`http://localhost/api/capsules/${capsuleId}`, {
+    method: 'DELETE',
+  })
+}
+
 function routeContext(capsuleId: string) {
   return { params: { id: capsuleId } }
 }
@@ -64,6 +71,7 @@ describe('/api/capsules/[id]', () => {
     vi.useFakeTimers()
     vi.setSystemTime(FIXED_NOW)
     vi.restoreAllMocks()
+    vi.clearAllMocks()
   })
 
   afterEach(() => {
@@ -163,6 +171,83 @@ describe('/api/capsules/[id]', () => {
       expect(data.capsule.message).toBe('Mensagem de teste')
       expect(data.capsule.daysUntilOpen).toBeUndefined()
       expect(data.capsule.status).toBe('delivered')
+    })
+  })
+
+  describe('DELETE', () => {
+    it('deve retornar 401 se não autenticado', async () => {
+      ;(auth as any).mockResolvedValue(null)
+
+      const req = createDeleteRequest(CAPSULE_ID)
+      const res = await DELETE(req, routeContext(CAPSULE_ID))
+
+      expect(res.status).toBe(401)
+      const data = await res.json()
+      expect(data).toEqual({ error: 'Não autorizado' })
+      expect(prisma.capsule.findUnique).not.toHaveBeenCalled()
+      expect(prisma.capsule.delete).not.toHaveBeenCalled()
+    })
+
+    it('deve retornar 401 se sessão não tiver user.id', async () => {
+      ;(auth as any).mockResolvedValue({ user: {} })
+
+      const req = createDeleteRequest(CAPSULE_ID)
+      const res = await DELETE(req, routeContext(CAPSULE_ID))
+
+      expect(res.status).toBe(401)
+      expect(prisma.capsule.findUnique).not.toHaveBeenCalled()
+      expect(prisma.capsule.delete).not.toHaveBeenCalled()
+    })
+
+    it('deve retornar 404 se cápsula não existir', async () => {
+      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+      ;(prisma.capsule.findUnique as any).mockResolvedValue(null)
+
+      const req = createDeleteRequest(CAPSULE_ID)
+      const res = await DELETE(req, routeContext(CAPSULE_ID))
+
+      expect(res.status).toBe(404)
+      const data = await res.json()
+      expect(data).toEqual({ error: 'Cápsula não encontrada' })
+      expect(prisma.capsule.findUnique).toHaveBeenCalledWith({
+        where: { id: CAPSULE_ID },
+      })
+      expect(prisma.capsule.delete).not.toHaveBeenCalled()
+    })
+
+    it('deve retornar 409 se cápsula já estiver entregue', async () => {
+      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+      ;(prisma.capsule.findUnique as any).mockResolvedValue({
+        ...mockCapsule,
+        status: 'delivered',
+        openedAt: FIXED_NOW,
+      })
+
+      const req = createDeleteRequest(CAPSULE_ID)
+      const res = await DELETE(req, routeContext(CAPSULE_ID))
+
+      expect(res.status).toBe(409)
+      const data = await res.json()
+      expect(data).toEqual({
+        error: 'Cápsulas já entregues não podem ser excluídas',
+      })
+      expect(prisma.capsule.delete).not.toHaveBeenCalled()
+    })
+
+    it('deve retornar 200 e deletar cápsula sealed', async () => {
+      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+      ;(prisma.capsule.findUnique as any).mockResolvedValue(mockCapsule)
+      ;(prisma.capsule.delete as any).mockResolvedValue(mockCapsule)
+
+      const req = createDeleteRequest(CAPSULE_ID)
+      const res = await DELETE(req, routeContext(CAPSULE_ID))
+
+      expect(res.status).toBe(200)
+      const data = await res.json()
+      expect(data).toEqual({ message: 'Cápsula deletada com sucesso' })
+      expect(prisma.capsule.delete).toHaveBeenCalledWith({
+        where: { id: CAPSULE_ID },
+      })
     })
   })
 })
