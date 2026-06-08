@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import type { Session } from 'next-auth'
+import { mockAuth } from '@/lib/mock-auth'
 
 vi.mock('@/auth', () => ({ auth: vi.fn() }))
 vi.mock('@/lib/prisma', () => ({
@@ -12,9 +14,7 @@ vi.mock('@/lib/prisma', () => ({
   },
 }))
 
-import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
-import { NextRequest } from 'next/server'
 import { GET } from './route'
 
 const USER_ID = 'user-123'
@@ -30,10 +30,6 @@ const mockUser = {
   updatedAt: FIXED_NOW,
 }
 
-function createGetRequest() {
-  return new NextRequest('http://localhost/api/user/profile')
-}
-
 describe('/api/user/profile', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -41,9 +37,9 @@ describe('/api/user/profile', () => {
 
   describe('GET', () => {
     it('deve retornar 401 se não autenticado', async () => {
-      ;(auth as any).mockResolvedValue(null)
+      mockAuth().mockResolvedValue(null)
 
-      const res = await GET(createGetRequest())
+      const res = await GET()
 
       expect(res.status).toBe(401)
       const data = await res.json()
@@ -53,9 +49,9 @@ describe('/api/user/profile', () => {
     })
 
     it('deve retornar 401 se sessão não tiver user.id', async () => {
-      ;(auth as any).mockResolvedValue({ user: {} })
+      mockAuth().mockResolvedValue({ user: {} } as Session)
 
-      const res = await GET(createGetRequest())
+      const res = await GET()
 
       expect(res.status).toBe(401)
       const data = await res.json()
@@ -65,11 +61,11 @@ describe('/api/user/profile', () => {
     })
 
     it('deve retornar 404 se usuário não existir', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-      ;(prisma.user.findUnique as any).mockResolvedValue(null)
-      ;(prisma.capsule.count as any).mockResolvedValue(0)
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
+      vi.mocked(prisma.capsule.count).mockResolvedValue(0)
 
-      const res = await GET(createGetRequest())
+      const res = await GET()
 
       expect(res.status).toBe(404)
       const data = await res.json()
@@ -80,14 +76,14 @@ describe('/api/user/profile', () => {
     })
 
     it('deve retornar 200 com perfil e estatísticas de cápsulas', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-      ;(prisma.user.findUnique as any).mockResolvedValue(mockUser)
-      ;(prisma.capsule.count as any)
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser)
+      vi.mocked(prisma.capsule.count)
         .mockResolvedValueOnce(10)
         .mockResolvedValueOnce(6)
         .mockResolvedValueOnce(4)
 
-      const res = await GET(createGetRequest())
+      const res = await GET()
 
       expect(res.status).toBe(200)
       const data = await res.json()

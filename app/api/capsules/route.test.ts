@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import type { Session } from 'next-auth'
+import { mockAuth } from '@/lib/mock-auth'
 import { addDays, differenceInDays, parseISO } from 'date-fns'
 
 vi.mock('@/auth', () => ({ auth: vi.fn() }))
@@ -15,7 +17,6 @@ vi.mock('@/lib/prisma', () => ({
   },
 }))
 
-import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { NextRequest } from 'next/server'
 import { GET, POST } from './route'
@@ -92,7 +93,7 @@ describe('/api/capsules', () => {
 
   describe('GET', () => {
     it('deve retornar 401 se não autenticado', async () => {
-      ;(auth as any).mockResolvedValue(null)
+      mockAuth().mockResolvedValue(null)
 
       const req = createGetRequest()
       const res = await GET(req)
@@ -105,7 +106,7 @@ describe('/api/capsules', () => {
     })
 
     it('deve retornar 401 se sessão não tiver user.id', async () => {
-      ;(auth as any).mockResolvedValue({ user: {} })
+      mockAuth().mockResolvedValue({ user: {} } as Session)
 
       const req = createGetRequest()
       const res = await GET(req)
@@ -115,7 +116,7 @@ describe('/api/capsules', () => {
     })
 
     it('deve retornar 400 se status for inválido', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
 
       const req = createGetRequest({ status: 'invalid' })
       const res = await GET(req)
@@ -127,7 +128,7 @@ describe('/api/capsules', () => {
     })
 
     it('deve retornar 400 se page for inválida', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
 
       const req = createGetRequest({ page: '0' })
       const res = await GET(req)
@@ -139,7 +140,7 @@ describe('/api/capsules', () => {
     })
 
     it('deve retornar 400 se limit exceder o máximo', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
 
       const req = createGetRequest({ limit: '51' })
       const res = await GET(req)
@@ -151,9 +152,9 @@ describe('/api/capsules', () => {
     })
 
     it('deve retornar 200 com cápsulas e paginação padrão', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-      ;(prisma.capsule.findMany as any).mockResolvedValue([mockCapsuleWithTrack])
-      ;(prisma.capsule.count as any).mockResolvedValue(1)
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
+      vi.mocked(prisma.capsule.findMany).mockResolvedValue([mockCapsuleWithTrack])
+      vi.mocked(prisma.capsule.count).mockResolvedValue(1)
 
       const req = createGetRequest()
       const res = await GET(req)
@@ -188,9 +189,9 @@ describe('/api/capsules', () => {
     })
 
     it('deve filtrar por status sealed', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-      ;(prisma.capsule.findMany as any).mockResolvedValue([])
-      ;(prisma.capsule.count as any).mockResolvedValue(0)
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
+      vi.mocked(prisma.capsule.findMany).mockResolvedValue([])
+      vi.mocked(prisma.capsule.count).mockResolvedValue(0)
 
       const req = createGetRequest({ status: 'sealed' })
       const res = await GET(req)
@@ -207,9 +208,9 @@ describe('/api/capsules', () => {
     })
 
     it('deve aplicar paginação customizada', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-      ;(prisma.capsule.findMany as any).mockResolvedValue([])
-      ;(prisma.capsule.count as any).mockResolvedValue(45)
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
+      vi.mocked(prisma.capsule.findMany).mockResolvedValue([])
+      vi.mocked(prisma.capsule.count).mockResolvedValue(45)
 
       const req = createGetRequest({ page: '2', limit: '10' })
       const res = await GET(req)
@@ -228,11 +229,11 @@ describe('/api/capsules', () => {
     })
 
     it('deve retornar daysUntilOpen null para cápsulas entregues', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-      ;(prisma.capsule.findMany as any).mockResolvedValue([
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
+      vi.mocked(prisma.capsule.findMany).mockResolvedValue([
         { ...mockCapsuleWithTrack, status: 'delivered' },
       ])
-      ;(prisma.capsule.count as any).mockResolvedValue(1)
+      vi.mocked(prisma.capsule.count).mockResolvedValue(1)
 
       const req = createGetRequest({ status: 'delivered' })
       const res = await GET(req)
@@ -245,7 +246,7 @@ describe('/api/capsules', () => {
 
   describe('POST', () => {
     it('deve retornar 401 se não autenticado', async () => {
-      ;(auth as any).mockResolvedValue(null)
+      mockAuth().mockResolvedValue(null)
 
       const req = createPostRequest(validPayload())
       const res = await POST(req)
@@ -258,7 +259,7 @@ describe('/api/capsules', () => {
     })
 
     it('deve retornar 401 se sessão não tiver user.id', async () => {
-      ;(auth as any).mockResolvedValue({ user: {} })
+      mockAuth().mockResolvedValue({ user: {} } as Session)
 
       const req = createPostRequest(validPayload())
       const res = await POST(req)
@@ -268,7 +269,7 @@ describe('/api/capsules', () => {
     })
 
     it('deve retornar 400 se message estiver ausente', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
 
       const req = createPostRequest(validPayload({ message: undefined }))
       const res = await POST(req)
@@ -281,7 +282,7 @@ describe('/api/capsules', () => {
     })
 
     it('deve retornar 400 se message exceder 500 caracteres', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
 
       const req = createPostRequest(validPayload({ message: 'a'.repeat(501) }))
       const res = await POST(req)
@@ -293,7 +294,7 @@ describe('/api/capsules', () => {
     })
 
     it('deve retornar 400 se trackId não for UUID', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
 
       const req = createPostRequest(validPayload({ trackId: 'invalid-id' }))
       const res = await POST(req)
@@ -305,7 +306,7 @@ describe('/api/capsules', () => {
     })
 
     it('deve retornar 400 se openAt tiver formato inválido', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
 
       const req = createPostRequest(validPayload({ openAt: '07/06/2026' }))
       const res = await POST(req)
@@ -317,7 +318,7 @@ describe('/api/capsules', () => {
     })
 
     it('deve retornar 400 se openAt for menos de 7 dias no futuro', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
 
       const tooSoon = addDays(FIXED_NOW, 6).toISOString().slice(0, 10)
       const req = createPostRequest(validPayload({ openAt: tooSoon }))
@@ -333,8 +334,8 @@ describe('/api/capsules', () => {
     })
 
     it('deve retornar 404 se faixa não existir', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-      ;(prisma.track.findUnique as any).mockResolvedValue(null)
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
+      vi.mocked(prisma.track.findUnique).mockResolvedValue(null)
 
       const req = createPostRequest(validPayload())
       const res = await POST(req)
@@ -346,9 +347,9 @@ describe('/api/capsules', () => {
     })
 
     it('deve retornar 201 e criar cápsula com payload válido', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-      ;(prisma.track.findUnique as any).mockResolvedValue(mockTrack)
-      ;(prisma.capsule.create as any).mockResolvedValue(mockCapsule)
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
+      vi.mocked(prisma.track.findUnique).mockResolvedValue(mockTrack)
+      vi.mocked(prisma.capsule.create).mockResolvedValue(mockCapsule)
 
       const payload = validPayload()
       const req = createPostRequest(payload)

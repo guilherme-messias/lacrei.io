@@ -12,32 +12,36 @@ describe('getCoverFromDeezer', () => {
         { id: 123, album: { cover_medium: 'http://cover.jpg' } },
       ],
     }
-    ;(globalThis as any).fetch = vi.fn().mockResolvedValue({
+    const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => sample,
     })
+    vi.stubGlobal('fetch', fetchMock)
 
     const res = await getCoverFromDeezer('Title', 'Artist')
     expect(res).toEqual({ albumCoverUrl: 'http://cover.jpg', deezerId: '123' })
   })
 
   it('retorna vazio quando response não ok', async () => {
-    ;(globalThis as any).fetch = vi.fn().mockResolvedValue({ ok: false })
+    const fetchMock = vi.fn().mockResolvedValue({ ok: false })
+    vi.stubGlobal('fetch', fetchMock)
     const res = await getCoverFromDeezer('Title', 'Artist')
     expect(res).toEqual({ albumCoverUrl: null, deezerId: null })
   })
 
   it('retorna vazio para title ou artist vazios e não chama fetch', async () => {
-    ;(globalThis as any).fetch = vi.fn()
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
     const res1 = await getCoverFromDeezer('   ', 'Artist')
     const res2 = await getCoverFromDeezer('Title', '   ')
     expect(res1).toEqual({ albumCoverUrl: null, deezerId: null })
     expect(res2).toEqual({ albumCoverUrl: null, deezerId: null })
-    expect((globalThis as any).fetch).not.toHaveBeenCalled()
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 
   it('retorna vazio em caso de exceção', async () => {
-    ;(globalThis as any).fetch = vi.fn().mockRejectedValue(new Error('network'))
+    const fetchMock = vi.fn().mockRejectedValue(new Error('network'))
+    vi.stubGlobal('fetch', fetchMock)
     const res = await getCoverFromDeezer('Title', 'Artist')
     expect(res).toEqual({ albumCoverUrl: null, deezerId: null })
   })

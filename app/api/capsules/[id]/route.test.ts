@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import type { Session } from 'next-auth'
+import { mockAuth } from '@/lib/mock-auth'
 import { differenceInDays, parseISO } from 'date-fns'
 
 vi.mock('@/auth', () => ({ auth: vi.fn() }))
@@ -11,7 +13,6 @@ vi.mock('@/lib/prisma', () => ({
   },
 }))
 
-import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { NextRequest } from 'next/server'
 import { GET, DELETE } from './route'
@@ -80,7 +81,7 @@ describe('/api/capsules/[id]', () => {
 
   describe('GET', () => {
     it('deve retornar 401 se não autenticado', async () => {
-      ;(auth as any).mockResolvedValue(null)
+      mockAuth().mockResolvedValue(null)
 
       const req = createGetRequest(CAPSULE_ID)
       const res = await GET(req, routeContext(CAPSULE_ID))
@@ -92,7 +93,7 @@ describe('/api/capsules/[id]', () => {
     })
 
     it('deve retornar 401 se sessão não tiver user.id', async () => {
-      ;(auth as any).mockResolvedValue({ user: {} })
+      mockAuth().mockResolvedValue({ user: {} } as Session)
 
       const req = createGetRequest(CAPSULE_ID)
       const res = await GET(req, routeContext(CAPSULE_ID))
@@ -102,8 +103,8 @@ describe('/api/capsules/[id]', () => {
     })
 
     it('deve retornar 404 se cápsula não existir', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-      ;(prisma.capsule.findUnique as any).mockResolvedValue(null)
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
+      vi.mocked(prisma.capsule.findUnique).mockResolvedValue(null)
 
       const req = createGetRequest(CAPSULE_ID)
       const res = await GET(req, routeContext(CAPSULE_ID))
@@ -118,8 +119,8 @@ describe('/api/capsules/[id]', () => {
     })
 
     it('deve retornar 403 se cápsula pertencer a outro usuário', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: OTHER_USER_ID } })
-      ;(prisma.capsule.findUnique as any).mockResolvedValue(mockCapsuleWithTrack)
+      mockAuth().mockResolvedValue({ user: { id: OTHER_USER_ID } } as Session)
+      vi.mocked(prisma.capsule.findUnique).mockResolvedValue(mockCapsuleWithTrack)
 
       const req = createGetRequest(CAPSULE_ID)
       const res = await GET(req, routeContext(CAPSULE_ID))
@@ -130,8 +131,8 @@ describe('/api/capsules/[id]', () => {
     })
 
     it('deve retornar 200 com cápsula sealed sem message e com daysUntilOpen', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-      ;(prisma.capsule.findUnique as any).mockResolvedValue(mockCapsuleWithTrack)
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
+      vi.mocked(prisma.capsule.findUnique).mockResolvedValue(mockCapsuleWithTrack)
 
       const req = createGetRequest(CAPSULE_ID)
       const res = await GET(req, routeContext(CAPSULE_ID))
@@ -160,8 +161,8 @@ describe('/api/capsules/[id]', () => {
         status: 'delivered',
         openedAt: FIXED_NOW,
       }
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-      ;(prisma.capsule.findUnique as any).mockResolvedValue(deliveredCapsule)
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
+      vi.mocked(prisma.capsule.findUnique).mockResolvedValue(deliveredCapsule)
 
       const req = createGetRequest(CAPSULE_ID)
       const res = await GET(req, routeContext(CAPSULE_ID))
@@ -176,7 +177,7 @@ describe('/api/capsules/[id]', () => {
 
   describe('DELETE', () => {
     it('deve retornar 401 se não autenticado', async () => {
-      ;(auth as any).mockResolvedValue(null)
+      mockAuth().mockResolvedValue(null)
 
       const req = createDeleteRequest(CAPSULE_ID)
       const res = await DELETE(req, routeContext(CAPSULE_ID))
@@ -189,7 +190,7 @@ describe('/api/capsules/[id]', () => {
     })
 
     it('deve retornar 401 se sessão não tiver user.id', async () => {
-      ;(auth as any).mockResolvedValue({ user: {} })
+      mockAuth().mockResolvedValue({ user: {} } as Session)
 
       const req = createDeleteRequest(CAPSULE_ID)
       const res = await DELETE(req, routeContext(CAPSULE_ID))
@@ -200,8 +201,8 @@ describe('/api/capsules/[id]', () => {
     })
 
     it('deve retornar 404 se cápsula não existir', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-      ;(prisma.capsule.findUnique as any).mockResolvedValue(null)
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
+      vi.mocked(prisma.capsule.findUnique).mockResolvedValue(null)
 
       const req = createDeleteRequest(CAPSULE_ID)
       const res = await DELETE(req, routeContext(CAPSULE_ID))
@@ -216,8 +217,8 @@ describe('/api/capsules/[id]', () => {
     })
 
     it('deve retornar 409 se cápsula já estiver entregue', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-      ;(prisma.capsule.findUnique as any).mockResolvedValue({
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
+      vi.mocked(prisma.capsule.findUnique).mockResolvedValue({
         ...mockCapsule,
         status: 'delivered',
         openedAt: FIXED_NOW,
@@ -235,9 +236,9 @@ describe('/api/capsules/[id]', () => {
     })
 
     it('deve retornar 200 e deletar cápsula sealed', async () => {
-      ;(auth as any).mockResolvedValue({ user: { id: USER_ID } })
-      ;(prisma.capsule.findUnique as any).mockResolvedValue(mockCapsule)
-      ;(prisma.capsule.delete as any).mockResolvedValue(mockCapsule)
+      mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
+      vi.mocked(prisma.capsule.findUnique).mockResolvedValue(mockCapsule)
+      vi.mocked(prisma.capsule.delete).mockResolvedValue(mockCapsule)
 
       const req = createDeleteRequest(CAPSULE_ID)
       const res = await DELETE(req, routeContext(CAPSULE_ID))

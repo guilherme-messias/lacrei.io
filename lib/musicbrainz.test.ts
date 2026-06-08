@@ -20,19 +20,21 @@ describe('searchMusicBrainz', () => {
       },
     ]
 
-    ;(globalThis as any).fetch = vi.fn().mockResolvedValue({
+    const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ recordings: sample }),
     })
+    vi.stubGlobal('fetch', fetchMock)
 
     const res = await searchMusicBrainz('some query')
     expect(res).toEqual(sample)
   })
 
   it('retorna [] quando a resposta não é ok', async () => {
-    ;(globalThis as any).fetch = vi
+    const fetchMock = vi
       .fn()
       .mockResolvedValue({ ok: false, status: 500 })
+    vi.stubGlobal('fetch', fetchMock)
     const res = await searchMusicBrainz('query')
     expect(res).toEqual([])
   })

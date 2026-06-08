@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import type { Session } from 'next-auth'
+import { mockAuth } from '@/lib/mock-auth'
 
 vi.mock('@/auth', () => ({ auth: vi.fn() }))
 vi.mock('@/lib/prisma', () => ({
@@ -9,7 +11,6 @@ vi.mock('@/lib/prisma', () => ({
   },
 }))
 
-import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { NextRequest } from 'next/server'
 import { POST } from './route'
@@ -40,7 +41,7 @@ describe('/api/auth/tracks', () => {
   })
 
   it('deve retornar 401 se não autenticado', async () => {
-    ;(auth as any).mockResolvedValue(null)
+    mockAuth().mockResolvedValue(null)
 
     const req = createPostRequest({ title: 'Come Together', artistName: 'The Beatles' })
     const res = await POST(req)
@@ -52,7 +53,7 @@ describe('/api/auth/tracks', () => {
   })
 
   it('deve retornar 400 se title estiver ausente', async () => {
-    ;(auth as any).mockResolvedValue({ user: { id: '123' } })
+    mockAuth().mockResolvedValue({ user: { id: '123' } } as Session)
 
     const req = createPostRequest({ artistName: 'The Beatles' })
     const res = await POST(req)
@@ -65,7 +66,7 @@ describe('/api/auth/tracks', () => {
   })
 
   it('deve retornar 400 se artistName estiver ausente', async () => {
-    ;(auth as any).mockResolvedValue({ user: { id: '123' } })
+    mockAuth().mockResolvedValue({ user: { id: '123' } } as Session)
 
     const req = createPostRequest({ title: 'Come Together' })
     const res = await POST(req)
@@ -78,7 +79,7 @@ describe('/api/auth/tracks', () => {
   })
 
   it('deve retornar 400 se albumCoverUrl for inválida', async () => {
-    ;(auth as any).mockResolvedValue({ user: { id: '123' } })
+    mockAuth().mockResolvedValue({ user: { id: '123' } } as Session)
 
     const req = createPostRequest({
       title: 'Come Together',
@@ -95,8 +96,8 @@ describe('/api/auth/tracks', () => {
   })
 
   it('deve retornar 200 e fazer upsert da faixa com payload completo', async () => {
-    ;(auth as any).mockResolvedValue({ user: { id: '123' } })
-    ;(prisma.track.upsert as any).mockResolvedValue(mockTrack)
+    mockAuth().mockResolvedValue({ user: { id: '123' } } as Session)
+    vi.mocked(prisma.track.upsert).mockResolvedValue(mockTrack)
 
     const payload = {
       musicbrainzId: 'mb-123',
@@ -132,8 +133,8 @@ describe('/api/auth/tracks', () => {
   })
 
   it('deve retornar 200 com payload mínimo (title e artistName)', async () => {
-    ;(auth as any).mockResolvedValue({ user: { id: '123' } })
-    ;(prisma.track.upsert as any).mockResolvedValue({
+    mockAuth().mockResolvedValue({ user: { id: '123' } } as Session)
+    vi.mocked(prisma.track.upsert).mockResolvedValue({
       ...mockTrack,
       musicbrainzId: null,
       deezerId: null,

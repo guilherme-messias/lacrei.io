@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import type { Session } from 'next-auth'
+import { mockAuth } from '@/lib/mock-auth'
 
 vi.mock('@/auth', () => ({ auth: vi.fn() }))
 vi.mock('@/lib/musicbrainz', () => ({ searchMusicBrainz: vi.fn() }))
 vi.mock('@/lib/deezer', () => ({ getCoverFromDeezer: vi.fn() }))
 
-import { auth } from '@/auth'
 import { searchMusicBrainz } from '@/lib/musicbrainz'
 import { getCoverFromDeezer } from '@/lib/deezer'
 import { NextRequest } from 'next/server'
@@ -16,7 +17,7 @@ describe('/api/auth/tracks/search', () => {
   })
 
   it('deve retornar 401 se não autenticado', async () => {
-    ;(auth as any).mockResolvedValue(null)
+    mockAuth().mockResolvedValue(null)
     const req = new NextRequest('http://localhost/api/auth/tracks/search?q=beatles')
     const res = await GET(req)
     expect(res.status).toBe(401)
@@ -25,7 +26,7 @@ describe('/api/auth/tracks/search', () => {
   })
 
   it('deve retornar 400 para query inválida', async () => {
-    ;(auth as any).mockResolvedValue({ user: { id: '123' } })
+    mockAuth().mockResolvedValue({ user: { id: '123' } } as Session)
     const req = new NextRequest('http://localhost/api/auth/tracks/search?q=a')
     const res = await GET(req)
     expect(res.status).toBe(400)
@@ -35,16 +36,19 @@ describe('/api/auth/tracks/search', () => {
   })
 
   it('deve retornar 200 e lista de faixas para query válida', async () => {
-    ;(auth as any).mockResolvedValue({ user: { id: '123' } })
-    ;(searchMusicBrainz as any).mockResolvedValue([
+    mockAuth().mockResolvedValue({ user: { id: '123' } } as Session)
+    vi.mocked(searchMusicBrainz).mockResolvedValue([
       {
         id: '1',
         title: 'Come Together',
-        'artist-credit': [{ name: 'The Beatles' }],
+        duration: 259000,
+        'artist-credit': [
+          { name: 'The Beatles', artist: { id: 'a1', name: 'The Beatles' } },
+        ],
         releases: [],
       },
     ])
-    ;(getCoverFromDeezer as any).mockResolvedValue({
+    vi.mocked(getCoverFromDeezer).mockResolvedValue({
       albumCoverUrl: 'https://example.com/cover.jpg',
       deezerId: '42',
     })

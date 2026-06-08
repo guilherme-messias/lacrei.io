@@ -35,7 +35,8 @@ export async function GET(
   }
 
   if (capsule.status === 'sealed') {
-    const { message: _, ...safeCapsule } = capsule
+    const { message, ...safeCapsule } = capsule
+    void message
 
     return NextResponse.json(
       {
