@@ -3,6 +3,21 @@ import type { Session } from 'next-auth'
 import { mockAuth } from '@/lib/mock-auth'
 import { addDays, differenceInDays, parseISO } from 'date-fns'
 
+const { mockEmailsSend, sendConfirmationEmailMock } = vi.hoisted(() => ({
+  mockEmailsSend: vi.fn().mockResolvedValue({ id: 'mock-email-id' }),
+  sendConfirmationEmailMock: vi.fn(),
+}))
+
+vi.mock('resend', () => ({
+  Resend: vi.fn().mockImplementation(() => ({
+    emails: { send: mockEmailsSend },
+  })),
+}))
+
+vi.mock('@/lib/email', () => ({
+  sendConfirmationEmail: sendConfirmationEmailMock,
+}))
+
 vi.mock('@/auth', () => ({ auth: vi.fn() }))
 vi.mock('@/lib/prisma', () => ({
   prisma: {
@@ -18,6 +33,7 @@ vi.mock('@/lib/prisma', () => ({
 }))
 
 import { prisma } from '@/lib/prisma'
+import { sendConfirmationEmail } from '@/lib/email'
 import { NextRequest } from 'next/server'
 import { GET, POST } from './route'
 
@@ -85,10 +101,12 @@ describe('/api/capsules', () => {
     vi.useFakeTimers()
     vi.setSystemTime(FIXED_NOW)
     vi.restoreAllMocks()
+    sendConfirmationEmailMock.mockResolvedValue(undefined)
   })
 
   afterEach(() => {
     vi.useRealTimers()
+    expect(mockEmailsSend).not.toHaveBeenCalled()
   })
 
   describe('GET', () => {
@@ -256,6 +274,7 @@ describe('/api/capsules', () => {
       expect(data).toEqual({ error: 'Não autorizado' })
       expect(prisma.track.findUnique).not.toHaveBeenCalled()
       expect(prisma.capsule.create).not.toHaveBeenCalled()
+      expect(sendConfirmationEmail).not.toHaveBeenCalled()
     })
 
     it('deve retornar 401 se sessão não tiver user.id', async () => {
@@ -266,6 +285,7 @@ describe('/api/capsules', () => {
 
       expect(res.status).toBe(401)
       expect(prisma.capsule.create).not.toHaveBeenCalled()
+      expect(sendConfirmationEmail).not.toHaveBeenCalled()
     })
 
     it('deve retornar 400 se message estiver ausente', async () => {
@@ -279,6 +299,7 @@ describe('/api/capsules', () => {
       expect(data.error).toBe('Parâmetro inválido')
       expect(data.details.fieldErrors.message).toBeDefined()
       expect(prisma.capsule.create).not.toHaveBeenCalled()
+      expect(sendConfirmationEmail).not.toHaveBeenCalled()
     })
 
     it('deve retornar 400 se message exceder 500 caracteres', async () => {
@@ -344,6 +365,7 @@ describe('/api/capsules', () => {
       const data = await res.json()
       expect(data).toEqual({ error: 'Faixa não encontrada', code: 'TRACK_NOT_FOUND' })
       expect(prisma.capsule.create).not.toHaveBeenCalled()
+      expect(sendConfirmationEmail).not.toHaveBeenCalled()
     })
 
     it('deve retornar 201 e criar cápsula com payload válido', async () => {
@@ -376,7 +398,9 @@ describe('/api/capsules', () => {
           openAt: parseISO(VALID_OPEN_AT),
           status: 'sealed',
         },
+        include: { track: true, user: true },
       })
+      expect(sendConfirmationEmail).toHaveBeenCalledWith(mockCapsule)
     })
   })
 })

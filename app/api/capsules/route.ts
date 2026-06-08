@@ -1,4 +1,5 @@
 import { auth } from '@/auth'
+import { sendConfirmationEmail } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
 import { addDays, differenceInDays, isAfter, parseISO } from 'date-fns'
 import { NextRequest, NextResponse } from 'next/server'
@@ -121,9 +122,10 @@ export async function POST(request: NextRequest) {
       openAt: openAtDate,
       status: 'sealed' as const,
     },
+    include: { track: true, user: true },
   })
 
-  // TODO: enviar email de confirmação
+  await sendConfirmationEmail(capsule)
 
   return NextResponse.json({ capsule: capsule }, { status: 201 })
 }

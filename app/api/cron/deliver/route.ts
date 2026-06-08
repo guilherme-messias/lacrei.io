@@ -1,9 +1,10 @@
+import { sendDeliveryEmail } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer${process.env.CRON_SECRET}`) {
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -17,8 +18,8 @@ export async function GET(request: NextRequest) {
 
   for (const capsule of capsules) {
     try {
-      // TODO: enviar email de entrega,depois seguir com testes da rota
-      // await sendDeliveryEmail(capsule) /
+      await sendDeliveryEmail(capsule)
+
       await prisma.capsule.update({
         where: { id: capsule.id },
         data: { status: 'delivered' },
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
       console.error(`Error delivering capsule ${capsule.id}`, error)
       failed++
     }
-
-    return NextResponse.json({ delivered, failed })
   }
+
+  return NextResponse.json({ delivered, failed })
 }
