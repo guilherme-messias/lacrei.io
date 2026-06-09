@@ -27,9 +27,9 @@ export function CapsuleCard({ capsule, status }: CapsuleCardProps) {
         ) : (
           <div className="w-10 h-10 bg-gray-200 rounded-full" />
         )}
+        <p className="text-lg font-bold">&ldquo;{capsule.message}&rdquo;</p>
         <p className="text-lg font-bold">{capsule.track.title}</p>
         <p className="text-sm text-gray-500">{capsule.track.artistName}</p>
-        <p className="text-lg font-bold">&ldquo;{capsule.message}&rdquo;</p>
         <p className="text-sm text-gray-500">
           {status === 'sealed' ? 'Aberto em' : 'Aberto em'}
           {format(capsule.openAt, 'dd/MM/yyyy', { locale: ptBR })}
