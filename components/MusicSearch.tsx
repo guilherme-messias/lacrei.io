@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useState, useEffect } from 'react'
 
 type TrackResult = {
@@ -20,19 +21,6 @@ export default function MusicSearch({
   const [isLoading, setIsLoading] = useState(false)
   const [selected, setSelected] = useState<TrackResult | null>(null)
 
-  useEffect(() => {
-    if (query.length < 2) {
-      setResults([])
-      return
-    }
-
-    const timer = setTimeout(() => {
-      fetchTracks(query)
-    }, 400)
-
-    return () => clearTimeout(timer)
-  }, [query])
-
   async function fetchTracks(q: string) {
     setIsLoading(true)
     try {
@@ -41,7 +29,8 @@ export default function MusicSearch({
       )
       const data = await response.json()
       setResults(data.tracks ?? [])
-    } catch (error) {
+    } catch ( error) {
+      console.error('Erro ao buscar músicas:', error)
       setResults([])
     } finally {
       setIsLoading(false)
@@ -49,15 +38,23 @@ export default function MusicSearch({
   }
 
   useEffect(() => {
+    if (query.length < 2) return
+    const timer = setTimeout(() => {
+      fetchTracks(query)
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [query])
+
+  useEffect(() => {
     onSelect(selected)
-  }, [selected])
+  }, [selected, onSelect])
 
   return (
     <div className="relative">
       {selected ? (
         <div className="flex gap-4 items-center p-3 border rounded bg-gray-50">
           {selected.albumCoverUrl ? (
-            <img
+            <Image
               src={selected.albumCoverUrl}
               alt={selected.title}
               width={120}
@@ -118,11 +115,11 @@ export default function MusicSearch({
                   className="flex gap-2 items-center px-3 py-2 hover:bg-gray-100 cursor-pointer"
                 >
                   {track.albumCoverUrl ? (
-                    <img
+                    <Image
                       src={track.albumCoverUrl}
                       alt={track.title}
-                      width={40}
-                      height={40}
+                      width={120}
+                      height={120}
                       className="rounded object-cover"
                     />
                   ) : (
