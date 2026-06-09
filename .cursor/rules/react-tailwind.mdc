@@ -1,0 +1,250 @@
+---
+description: Regras para frontend React + Tailwind
+globs: ["src/**/*.tsx", "src/**/*.ts", "app/**/*.tsx"]
+alwaysApply: false
+---
+
+## IDENTIDADE DO PRODUTO
+
+Lacrei é um ritual pessoal, não um app de produtividade.
+O tom é íntimo, afetivo e paciente — como uma carta escrita para o futuro.
+Cada decisão de estilo deve derivar da pergunta:
+"Isso parece uma amiga que manda mensagem de voz às 11 da noite — ou parece um SaaS?"
+
+---
+
+## PALETA DE CORES — USO OBRIGATÓRIO
+
+### Primária — Roxo Noite (Ramp Purple)
+```
+purple-50:  #EEEDFE  → fundos suaves, hover states, superfícies de cards
+purple-400: #7F77DD  → elementos interativos secundários, ícones, bordas ativas
+purple-800: #3C3489  → texto de destaque sobre fundos claros, botões secundários
+purple-900: #26215C  → fundo principal dark, headers, nav
+```
+
+### Acento — Teal (Abertura / Entrega)
+```
+teal-50:  #E1F5EE  → background de estado "aberto", badges suaves
+teal-400: #1D9E75  → CTA principal, botão primário, estado de entrega
+teal-800: #085041  → hover de botão primário, texto sobre teal claro
+```
+⚠️ O teal é uma cor de EVENTO. Aparece apenas nos momentos de abertura de cápsula
+e no CTA principal de criação. Não espalhe teal pelo layout como cor decorativa.
+
+### Neutro — Superfícies (Ramp Gray)
+```
+gray-50:  #F1EFE8  → fundo de página em modo claro, papel
+gray-400: #888780  → texto auxiliar, placeholders, metadados
+gray-900: #2C2C2A  → texto principal, corpo de leitura
+```
+
+### Regras de uso de cor
+- Nunca use cores fora da paleta acima (sem azuis genéricos, sem verdes de sucesso padrão, sem vermelhos de erro padrão do Tailwind sem personalização)
+- Erros: use `purple-800` com ícone, não `red-500`
+- Sucesso / entrega: sempre `teal-400`, nunca `green-500`
+- Não misture roxo + teal como cores irmãs no mesmo componente — teal é acento, não companheiro
+
+---
+
+## TIPOGRAFIA
+
+### Escala e hierarquia
+```
+Display (hero, frase da cápsula):  text-4xl / text-5xl — font-light — tracking-tight
+H1 (títulos de tela):              text-2xl / text-3xl — font-medium
+H2 (seções):                       text-xl             — font-medium
+Body (texto corrido):              text-base           — font-normal — leading-relaxed
+Caption / metadado:                text-sm             — font-normal — text-gray-400
+Label de formulário:               text-sm             — font-medium — uppercase tracking-wide
+```
+
+### Diretrizes tipográficas
+- `font-light` é bem-vindo — o produto tem leveza afetiva, não peso corporativo
+- Evite `font-bold` em textos longos. Use `font-medium` para ênfase
+- `leading-relaxed` ou `leading-loose` em frases emocionais — dê espaço para respirar
+- Nunca use `font-black` ou `font-extrabold` — não é um app de fitness ou fintech
+- A frase escrita pelo usuário (mensagem da cápsula) recebe sempre tratamento de "carta":
+  tipografia maior, espaçamento generoso, sem box ou card genérico ao redor
+
+---
+
+## ESPAÇAMENTO E LAYOUT
+
+### Filosofia
+- Espaçamento generoso > compacto. O produto celebra esperar — o layout não pode ser ansioso
+- Prefira `py-12`, `py-16`, `py-20` em seções principais
+- Padding interno de cards: mínimo `p-6`, ideal `p-8`
+- Gap entre elementos relacionados: `gap-4` a `gap-6`
+- Gap entre seções distintas: `gap-10` a `gap-16`
+
+### Container
+- Largura máxima de conteúdo: `max-w-2xl` para leitura, `max-w-4xl` para listas/grid
+- Sempre centralizado: `mx-auto`
+- Padding horizontal de segurança: `px-4 sm:px-6`
+
+---
+
+## COMPONENTES — PADRÕES
+
+### Botão Primário (CTA)
+```
+bg-teal-400 text-white
+hover:bg-teal-800
+rounded-xl px-6 py-3
+font-medium text-base
+transition-colors duration-200
+```
+- Só um botão primário por tela
+- Nunca use `rounded-full` em botões de ação — remete a redes sociais, não ao produto
+
+### Botão Secundário
+```
+border border-purple-400 text-purple-800
+hover:bg-purple-50
+rounded-xl px-6 py-3
+font-medium text-base
+transition-colors duration-200
+```
+
+### Botão Destrutivo (ex: Excluir cápsula)
+```
+border border-gray-400 text-gray-400
+hover:border-purple-800 hover:text-purple-800
+```
+- Nunca use `bg-red-500` ou variações — não é o tom da marca
+
+### Cards de Cápsula
+```
+bg-white (modo claro) / bg-purple-900 (modo dark)
+rounded-2xl
+p-6 ou p-8
+shadow-sm  ← sombra discreta, nunca shadow-xl ou drop-shadow exagerado
+border border-purple-50 (modo claro)
+```
+
+### Card Lacrado (cápsula no futuro)
+- Capa do álbum com `blur-md` + overlay `bg-purple-900/60`
+- Ícone de cadeado centralizado sobre a capa
+- Contagem regressiva: `text-4xl font-light text-white` — número grande e limpo
+- A frase do usuário: substituída por placeholder neutro, sem tentar "revelar" nada
+
+### Card Aberto (cápsula entregue)
+- Capa do álbum nítida, sem filtros
+- Frase em tipografia maior com `leading-loose`
+- Copy contextual: "Você escreveu isso em [data]" — tom íntimo, não informativo
+
+### Inputs / Formulários
+```
+border border-gray-400
+focus:border-purple-400 focus:ring-1 focus:ring-purple-400
+rounded-xl px-4 py-3
+text-gray-900 placeholder:text-gray-400
+bg-white
+outline-none
+transition-colors duration-150
+```
+- Nunca use `focus:ring-blue-500` ou qualquer ring fora da paleta
+- Label sempre acima do input, nunca placeholder como substituto de label
+
+### Textarea (mensagem da cápsula)
+- Mesmos padrões do input
+- `min-h-[120px] resize-none`
+- Trate como área de carta, não de formulário técnico
+
+---
+
+## ANTI-PADRÕES — O QUE NUNCA FAZER
+
+### Padrões de IA genérica a evitar
+- ❌ Gradientes de `from-blue-500 to-purple-600` — não existe azul nessa marca
+- ❌ Cards com `shadow-2xl` ou sombras dramáticas — é produto íntimo, não landing page de SaaS
+- ❌ Badges coloridos com `bg-green-100 text-green-800` — use a paleta teal
+- ❌ Botões `rounded-full` em CTAs principais
+- ❌ Ícones de emoji inline no texto de interface
+- ❌ Alertas e toasts com `bg-red-50 border-red-200` — personalize com a paleta
+- ❌ Texto em `uppercase` em corpo de leitura ou mensagens emocionais
+- ❌ `font-bold` em headlines emocionais — use `font-light` ou `font-medium`
+- ❌ Grid de 3 colunas com cards idênticos como solução padrão para listas
+- ❌ Seções com fundo em `bg-gray-100` intercaladas — parece template de blog
+- ❌ Animações de bounce, pulse em elementos que não são loading states
+- ❌ `transition-all` — sempre especifique o que está transitando (`transition-colors`, `transition-opacity`)
+- ❌ `text-blue-*` em qualquer contexto — azul não existe nessa paleta
+
+### Padrões de copy / microcopy a evitar
+- ❌ "Operação realizada com sucesso"
+- ❌ "Sua entrada foi salva"  
+- ❌ "Erro ao processar sua solicitação"
+- ✅ Use tom íntimo: "Guardamos." / "Sua cápsula está lacrada." / "Algo deu errado — tente de novo."
+
+---
+
+## ESTADOS ESPECIAIS
+
+### Estado Vazio (zero cápsulas no diário)
+- Nunca use a ilustração SVG genérica de "caixa vazia" ou "lupa"
+- Copy: "Seu diário está em branco. Que música define esse momento?"
+- CTA direto para criar a primeira cápsula
+
+### Loading / Skeleton
+- Use `animate-pulse` com `bg-purple-50` como cor de skeleton
+- Nunca use `bg-gray-200` padrão do Tailwind
+
+### Estados de erro
+- Sem ícones de "X" vermelho em círculo
+- Mensagem inline abaixo do campo, `text-sm text-purple-800`
+
+---
+
+## IMAGENS E CAPAS DE ÁLBUM
+
+- Sempre renderizadas com `rounded-xl` (nunca `rounded-full` para capas)
+- Tamanho padrão em cards: `w-16 h-16` ou `w-20 h-20`
+- Tamanho em tela de detalhe: `w-48 h-48` ou maior, sem stretching
+- Use `object-cover` sempre
+- Capa lacrada: `filter blur-md` + overlay escuro — nunca esconda a capa completamente
+
+---
+
+## DARK MODE
+
+O produto tem fundo principal escuro (`purple-900: #26215C`) como identidade.
+Trate o modo escuro como o estado primário visual do app, não como variante.
+
+Superfície primária: `#26215C` (purple-900)
+Superfície de card: levemente mais clara — use `bg-purple-800/40` ou um tom custom
+Texto principal sobre dark: `white` ou `gray-50`
+Texto auxiliar sobre dark: `purple-50` com opacidade reduzida
+
+---
+
+## ANIMAÇÕES E TRANSIÇÕES
+
+- Duração padrão: `duration-200` para interações, `duration-300` para entradas de componente
+- Easing: `ease-in-out` como padrão
+- Entrada de cards/conteúdo: `opacity-0 → opacity-100` + leve `translate-y-2 → translate-y-0`
+- Nunca use animações chamativas em contexto emocional (abertura de cápsula = suave, não espetacular)
+- A revelação da frase em cápsula aberta: fade in simples, sem confete, sem partículas
+
+---
+
+## RESPONSIVIDADE
+
+- Mobile-first sempre
+- Breakpoints: use apenas `sm:` e `md:` — evite `lg:` e `xl:` se não houver necessidade real
+- Em mobile: padding lateral mínimo `px-4`, nunca zero
+- Botões de CTA: `w-full` em mobile, `w-auto` em sm+
+
+---
+
+## CONVENÇÕES DE CÓDIGO (estilo)
+
+- Classes Tailwind: ordenadas por categoria (layout → spacing → typography → color → state)
+- Nunca use `style={{}}` inline para coisas que o Tailwind resolve
+- Extraia para componente quando o className ultrapassar ~8 classes em elemento de texto
+- Prefira `cn()` (clsx/tailwind-merge) para classes condicionais
+
+---
+
+_Qualquer dúvida sobre uma decisão de estilo: volte para a pergunta-guia._
+_"Isso parece uma amiga cúmplice — ou parece um template de SaaS?"_
