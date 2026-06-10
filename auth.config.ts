@@ -20,6 +20,18 @@ export const authConfig = {
     signOut: '/logout',
   },
   callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user
+      const { pathname } = nextUrl
+
+      const isPublic =
+        pathname === '/' ||
+        pathname.startsWith('/login') ||
+        pathname.startsWith('/logout')
+
+      if (isPublic) return true
+      return isLoggedIn
+    },
     session({ session, token }) {
       if (token.sub) session.user.id = token.sub
       return session
