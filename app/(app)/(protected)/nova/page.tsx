@@ -29,14 +29,18 @@ export default function Page() {
 
     setError('')
 
-    if (!message.trim() || !selectedTrack?.musicbrainzId || !openAt) {
+    if (
+      !message.trim() ||
+      !openAt ||
+      (!selectedTrack?.musicbrainzId && !selectedTrack?.deezerId)
+    ) {
       setError('Preencha todos os campos antes de continuar.')
       return
     }
 
     try {
       setIsSubmitting(true)
-      const trackRes = await fetch('/api/auth/tracks/search', {
+      const trackRes = await fetch('/api/auth/tracks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

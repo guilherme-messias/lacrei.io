@@ -1,5 +1,5 @@
 export type SearchTrack = {
-  musicbrainzId: string
+  musicbrainzId: string | null
   deezerId: string | null
   title: string
   artistName: string

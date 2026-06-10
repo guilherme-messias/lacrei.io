@@ -31,25 +31,27 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  const { musicbrainzId, deezerId, ...fields } = parsed.data
+
   const trackData = await prisma.track.upsert({
-    where: {
-      musicbrainzId: parsed.data.musicbrainzId || '',
-    },
+    where: deezerId
+      ? { deezerId }
+      : { musicbrainzId: musicbrainzId || '' },
     update: {
-      title: parsed.data.title,
-      artistName: parsed.data.artistName,
-      albumTitle: parsed.data.albumTitle,
-      albumCoverUrl: parsed.data.albumCoverUrl,
-      durationSeconds: parsed.data.durationSeconds,
+      title: fields.title,
+      artistName: fields.artistName,
+      albumTitle: fields.albumTitle,
+      albumCoverUrl: fields.albumCoverUrl,
+      durationSeconds: fields.durationSeconds,
     },
     create: {
-      musicbrainzId: parsed.data.musicbrainzId,
-      deezerId: parsed.data.deezerId,
-      title: parsed.data.title,
-      artistName: parsed.data.artistName,
-      albumTitle: parsed.data.albumTitle,
-      albumCoverUrl: parsed.data.albumCoverUrl,
-      durationSeconds: parsed.data.durationSeconds,
+      musicbrainzId,
+      deezerId,
+      title: fields.title,
+      artistName: fields.artistName,
+      albumTitle: fields.albumTitle,
+      albumCoverUrl: fields.albumCoverUrl,
+      durationSeconds: fields.durationSeconds,
     },
   })
 

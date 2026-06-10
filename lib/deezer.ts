@@ -33,3 +33,36 @@ export async function getCoverFromDeezer(
     return empty
   }
 }
+
+export type DeezerTrack = {
+  musicbrainzId: null
+  deezerId: string
+  title: string
+  artistName: string
+  albumTitle: string | null
+  albumCoverUrl: string | null
+  durationSeconds: number | null
+}
+
+export async function searchDeezer(
+  q: string,
+  limit = 10
+): Promise<DeezerTrack[]> {
+  const url = `https://api.deezer.com/search?q=${encodeURIComponent(q)}&limit=${limit}`
+
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Deezer error: ${res.status}`)
+
+  const data = await res.json()
+  if (!data.data || data.data.length === 0) return []
+
+  return data.data.map((item: any) => ({
+    musicbrainzId: null,
+    deezerId: String(item.id),
+    title: item.title,
+    artistName: item.artist.name,
+    albumTitle: item.album?.title ?? null,
+    albumCoverUrl: item.album?.cover_medium ?? null,
+    durationSeconds: item.duration ?? null,
+  }))
+}

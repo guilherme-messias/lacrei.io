@@ -152,7 +152,7 @@ export default function MusicSearch({
       return (
         <ul>
           {results.map((track) => (
-            <li key={track.musicbrainzId}>
+            <li key={track.deezerId ?? track.musicbrainzId}>
               <button
                 type="button"
                 onClick={() => {
