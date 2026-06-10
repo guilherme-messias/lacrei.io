@@ -61,10 +61,14 @@ describe('/api/auth/tracks/search', () => {
 
     if (data.tracks.length > 0) {
       const track = data.tracks[0]
-      expect(track).toHaveProperty('title')
-      expect(track).toHaveProperty('artist')
-      expect(track).toHaveProperty('albumCoverUrl')
-      expect(track).toHaveProperty('deezerId')
+      expect(track).toEqual({
+        musicbrainzId: '1',
+        deezerId: '42',
+        title: 'Come Together',
+        artistName: 'The Beatles',
+        albumCoverUrl: 'https://example.com/cover.jpg',
+        durationSeconds: 259,
+      })
     }
   })
 })

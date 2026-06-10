@@ -4,17 +4,10 @@ import { Capsule } from '@/app/generated/prisma/client'
 import CapsulePreview from '@/components/CapsulePreview'
 import MusicSearch from '@/components/MusicSearch'
 import OpenAtPicker from '@/components/OpenAtPicker'
+import type { SearchTrack } from '@/lib/tracks'
 import { addMonths, format } from 'date-fns'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-
-type TrackResult = {
-  id: string
-  title: string
-  artistName: string
-  albumCoverUrl: string | null
-  durationSeconds: number | null
-}
 
 type CapsuleResponse = {
   capsule: Capsule
@@ -22,7 +15,7 @@ type CapsuleResponse = {
 
 export default function Page() {
   const [message, setMessage] = useState('')
-  const [selectedTrack, setSelectedTrack] = useState<TrackResult | null>(null)
+  const [selectedTrack, setSelectedTrack] = useState<SearchTrack | null>(null)
   const [openAt, setOpenAt] = useState(() =>
     format(addMonths(new Date(), 3), 'yyyy-MM-dd')
   )
@@ -36,14 +29,14 @@ export default function Page() {
 
     setError('')
 
-    if (!message.trim() || !selectedTrack?.id || !openAt) {
+    if (!message.trim() || !selectedTrack?.musicbrainzId || !openAt) {
       setError('Preencha todos os campos antes de continuar.')
       return
     }
 
     try {
       setIsSubmitting(true)
-      const trackRes = await fetch('/api/tracks', {
+      const trackRes = await fetch('/api/auth/tracks/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

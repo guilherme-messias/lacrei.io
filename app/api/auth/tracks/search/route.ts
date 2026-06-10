@@ -33,13 +33,22 @@ export async function GET(request: NextRequest) {
   const tracks = await Promise.all(
     recordings.slice(0, 5).map(async rec => {
       const title = rec.title
-      const artist = rec['artist-credit'][0].name
+      const artistName = rec['artist-credit'][0].name
       const { albumCoverUrl, deezerId } = await getCoverFromDeezer(
         title,
-        artist
+        artistName
       )
 
-      return { title, artist, albumCoverUrl, deezerId }
+      return {
+        musicbrainzId: rec.id,
+        deezerId,
+        title,
+        artistName,
+        albumCoverUrl,
+        durationSeconds: rec.duration
+          ? Math.round(rec.duration / 1000)
+          : null,
+      }
     })
   )
 

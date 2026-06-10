@@ -5,12 +5,12 @@ import z from 'zod'
 
 const trackSchema = z.object({
   musicbrainzId: z.string().optional(),
-  deezerId: z.string().optional(),
+  deezerId: z.string().nullable().optional(),
   title: z.string().min(1),
   artistName: z.string().min(1),
   albumTitle: z.string().optional(),
   albumCoverUrl: z.url().optional().nullable(),
-  durationSeconds: z.number().int().optional(),
+  durationSeconds: z.number().int().nullable().optional(),
 })
 
 export async function POST(request: NextRequest) {

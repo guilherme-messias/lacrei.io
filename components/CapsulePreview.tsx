@@ -1,18 +1,11 @@
+import type { SearchTrack } from '@/lib/tracks'
 import Image from 'next/image'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
-type TrackResult = {
-  id: string
-  title: string
-  artistName: string
-  albumCoverUrl: string | null
-  durationSeconds: number | null
-}
-
 interface CapsulePreviewProps {
   message: string
-  track: TrackResult | null
+  track: SearchTrack | null
   openAt: string
 }
 
