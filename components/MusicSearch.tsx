@@ -29,7 +29,7 @@ export default function MusicSearch({
       )
       const data = await response.json()
       setResults(data.tracks ?? [])
-    } catch ( error) {
+    } catch (error) {
       console.error('Erro ao buscar músicas:', error)
       setResults([])
     } finally {
@@ -52,28 +52,29 @@ export default function MusicSearch({
   return (
     <div className="relative">
       {selected ? (
-        <div className="flex gap-4 items-center p-3 border rounded bg-gray-50">
+        <div className="flex items-center gap-4 rounded-xl border border-purple-400/20 bg-purple-800/40 p-4">
           {selected.albumCoverUrl ? (
             <Image
               src={selected.albumCoverUrl}
               alt={selected.title}
-              width={120}
-              height={120}
-              className="rounded object-cover"
+              width={64}
+              height={64}
+              className="h-16 w-16 rounded-xl object-cover"
             />
           ) : (
-            <div className="w-[120px] h-[120px] bg-gray-200 rounded" />
+            <div className="h-16 w-16 rounded-xl bg-purple-900/60" />
           )}
 
-          <div className="flex flex-col gap-2">
-            <p className="font-semibold">{selected.title}</p>
-            <p className="text-sm text-gray-500">{selected.artistName}</p>
+          <div className="flex flex-col gap-1">
+            <p className="text-base font-medium text-gray-50">{selected.title}</p>
+            <p className="text-sm text-purple-50/70">{selected.artistName}</p>
             <button
+              type="button"
               onClick={() => {
                 setSelected(null)
                 setQuery('')
               }}
-              className="text-sm text-purple-600 underline text-left"
+              className="text-left text-sm text-purple-400 transition-colors duration-200 hover:text-purple-50"
             >
               Trocar música
             </button>
@@ -84,19 +85,19 @@ export default function MusicSearch({
           <input
             type="text"
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar música..."
-            className="w-full border rounded px-3 py-2"
+            className="w-full rounded-xl border border-gray-400 bg-white px-4 py-3 text-base text-gray-900 outline-none transition-colors duration-150 placeholder:text-gray-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
           />
 
           {isLoading && (
-            <div className="absolute w-full border rounded mt-1 bg-white p-2 flex flex-col gap-2">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="flex gap-2 items-center">
-                  <div className="w-10 h-10 bg-gray-200 rounded animate-pulse" />
-                  <div className="flex flex-col gap-1 flex-1">
-                    <div className="h-3 bg-gray-200 rounded animate-pulse w-3/4" />
-                    <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2" />
+            <div className="absolute z-10 mt-2 flex w-full flex-col gap-2 rounded-xl border border-purple-400/20 bg-purple-800/40 p-3 shadow-sm">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="h-10 w-10 animate-pulse rounded-xl bg-purple-50/20" />
+                  <div className="flex flex-1 flex-col gap-1">
+                    <div className="h-3 w-3/4 animate-pulse rounded bg-purple-50/20" />
+                    <div className="h-3 w-1/2 animate-pulse rounded bg-purple-50/20" />
                   </div>
                 </div>
               ))}
@@ -104,38 +105,44 @@ export default function MusicSearch({
           )}
 
           {!isLoading && results.length > 0 && (
-            <ul className="absolute w-full border rounded mt-1 bg-white z-10">
-              {results.map(track => (
-                <li
-                  key={track.id}
-                  onClick={() => {
-                    setSelected(track)
-                    setResults([])
-                  }}
-                  className="flex gap-2 items-center px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                >
-                  {track.albumCoverUrl ? (
-                    <Image
-                      src={track.albumCoverUrl}
-                      alt={track.title}
-                      width={120}
-                      height={120}
-                      className="rounded object-cover"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 bg-gray-200 rounded" />
-                  )}
-                  <div>
-                    <p className="text-sm font-medium">{track.title}</p>
-                    <p className="text-xs text-gray-500">{track.artistName}</p>
-                  </div>
+            <ul className="absolute z-10 mt-2 w-full overflow-hidden rounded-xl border border-purple-400/20 bg-purple-800/40 shadow-sm">
+              {results.map((track) => (
+                <li key={track.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelected(track)
+                      setResults([])
+                    }}
+                    className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 transition-colors duration-200 hover:bg-purple-800/60"
+                  >
+                    {track.albumCoverUrl ? (
+                      <Image
+                        src={track.albumCoverUrl}
+                        alt={track.title}
+                        width={40}
+                        height={40}
+                        className="h-10 w-10 rounded-xl object-cover"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-xl bg-purple-900/60" />
+                    )}
+                    <div className="text-left">
+                      <p className="text-sm font-medium text-gray-50">
+                        {track.title}
+                      </p>
+                      <p className="text-xs text-purple-50/70">
+                        {track.artistName}
+                      </p>
+                    </div>
+                  </button>
                 </li>
               ))}
             </ul>
           )}
 
           {!isLoading && results.length === 0 && query.length >= 2 && (
-            <div className="absolute w-full border rounded mt-1 bg-white px-3 py-2 text-sm text-gray-500">
+            <div className="absolute z-10 mt-2 w-full rounded-xl border border-purple-400/20 bg-purple-800/40 px-4 py-3 text-sm text-purple-50/70 shadow-sm">
               Nenhuma música encontrada
             </div>
           )}
