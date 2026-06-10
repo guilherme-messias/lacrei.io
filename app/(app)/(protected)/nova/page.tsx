@@ -1,9 +1,11 @@
 'use client'
 
+import { Capsule } from '@/app/generated/prisma/client'
 import CapsulePreview from '@/components/CapsulePreview'
 import MusicSearch from '@/components/MusicSearch'
 import OpenAtPicker from '@/components/OpenAtPicker'
 import { addMonths, format } from 'date-fns'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 type TrackResult = {
@@ -14,22 +16,30 @@ type TrackResult = {
   durationSeconds: number | null
 }
 
+type CapsuleResponse = {
+  capsule: Capsule
+}
+
 export default function Page() {
   const [message, setMessage] = useState('')
   const [selectedTrack, setSelectedTrack] = useState<TrackResult | null>(null)
   const [openAt, setOpenAt] = useState(() =>
     format(addMonths(new Date(), 3), 'yyyy-MM-dd')
   )
+  const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  async function handleSubmit() {
-    const newErrors: Record<string, string> = {}
+  const router = useRouter()
 
-    if (!message.trim()) newErrors.message = 'Escreva uma frase'
-    if (!selectedTrack?.id) newErrors.track = 'Escolha uma música'
-    if (!openAt) newErrors.openAt = 'Escolha uma data'
+  async function handleSubmit(e: { preventDefault(): void }) {
+    e.preventDefault()
 
-    if (Object.keys(newErrors).length > 0) return newErrors
+    setError('')
+
+    if (!message.trim() || !selectedTrack?.id || !openAt) {
+      setError('Preencha todos os campos antes de continuar.')
+      return
+    }
 
     try {
       setIsSubmitting(true)
@@ -41,10 +51,33 @@ export default function Page() {
         body: JSON.stringify(selectedTrack),
       })
 
-      const trackData = await trackRes.json()
+      if (!trackRes.ok) {
+        throw new Error('Erro ao salvar música')
+      }
 
-      const trackId = trackData.track.id
+      const trackId = (await trackRes.json()).track.id
+
+      const capsuleRes = await fetch('/api/capsules', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message,
+          trackId,
+          openAt,
+        }),
+      })
+
+      if (!capsuleRes.ok) {
+        throw new Error('Erro ao criar cápsula')
+      }
+
+      const capsuleData = (await capsuleRes.json()) as CapsuleResponse
+
+      router.push(`/nova/confirmacao?id=${capsuleData.capsule.id}`)
     } catch {
+      setError('Algo deu errado. Tente novamente.')
     } finally {
       setIsSubmitting(false)
     }
@@ -62,7 +95,7 @@ export default function Page() {
       </div>
 
       <div className="grid gap-10 md:grid-cols-[1fr_320px] md:items-start">
-        <form className="flex flex-col gap-8">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-8">
           <div className="flex flex-col gap-2">
             <label
               htmlFor="message"
@@ -102,6 +135,7 @@ export default function Page() {
             </span>
             <OpenAtPicker onSelect={setOpenAt} />
           </div>
+          {error && <p className="text-sm text-red-400">{error}</p>}
 
           <button
             type="submit"
