@@ -4,12 +4,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import z from 'zod'
 
 const trackSchema = z.object({
-  musicbrainzId: z.string().optional(),
+  musicbrainzId: z.string().nullable().optional(),
   deezerId: z.string().nullable().optional(),
   title: z.string().min(1),
   artistName: z.string().min(1),
-  albumTitle: z.string().optional(),
-  albumCoverUrl: z.url().optional().nullable(),
+  albumTitle: z.string().nullable().optional(),
+  albumCoverUrl: z.url().nullable().optional(),
   durationSeconds: z.number().int().nullable().optional(),
 })
 

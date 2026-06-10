@@ -37,7 +37,7 @@ import { sendConfirmationEmail } from '@/lib/email'
 import { NextRequest } from 'next/server'
 import { GET, POST } from './route'
 
-const TRACK_ID = '550e8400-e29b-41d4-a716-446655440000'
+const TRACK_ID = 'clh3h9x8k0000qzrmn531lky'
 const USER_ID = 'user-123'
 const FIXED_NOW = new Date('2026-06-07T12:00:00.000Z')
 const VALID_OPEN_AT = '2026-06-14'
@@ -314,7 +314,7 @@ describe('/api/capsules', () => {
       expect(data.details.fieldErrors.message).toBeDefined()
     })
 
-    it('deve retornar 400 se trackId não for UUID', async () => {
+    it('deve retornar 400 se trackId não for CUID', async () => {
       mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
 
       const req = createPostRequest(validPayload({ trackId: 'invalid-id' }))

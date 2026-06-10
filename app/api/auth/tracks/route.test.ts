@@ -120,11 +120,46 @@ describe('/api/auth/tracks', () => {
     })
 
     expect(prisma.track.upsert).toHaveBeenCalledWith({
-      where: { musicbrainzId: 'mb-123' },
+      where: { deezerId: 'dz-456' },
       update: {
         title: payload.title,
         artistName: payload.artistName,
         albumTitle: payload.albumTitle,
+        albumCoverUrl: payload.albumCoverUrl,
+        durationSeconds: payload.durationSeconds,
+      },
+      create: payload,
+    })
+  })
+
+  it('deve retornar 200 com faixa do Deezer (musicbrainzId null)', async () => {
+    mockAuth().mockResolvedValue({ user: { id: '123' } } as Session)
+    vi.mocked(prisma.track.upsert).mockResolvedValue({
+      ...mockTrack,
+      musicbrainzId: null,
+      deezerId: 'dz-456',
+    })
+
+    const payload = {
+      musicbrainzId: null,
+      deezerId: 'dz-456',
+      title: 'Come Together',
+      artistName: 'The Beatles',
+      albumTitle: null,
+      albumCoverUrl: 'https://example.com/cover.jpg',
+      durationSeconds: 259,
+    }
+
+    const req = createPostRequest(payload)
+    const res = await POST(req)
+
+    expect(res.status).toBe(200)
+    expect(prisma.track.upsert).toHaveBeenCalledWith({
+      where: { deezerId: 'dz-456' },
+      update: {
+        title: payload.title,
+        artistName: payload.artistName,
+        albumTitle: null,
         albumCoverUrl: payload.albumCoverUrl,
         durationSeconds: payload.durationSeconds,
       },
