@@ -14,13 +14,41 @@ type TrackResult = {
   durationSeconds: number | null
 }
 
-export default function NovaPage() {
+export default function Page() {
   const [message, setMessage] = useState('')
   const [selectedTrack, setSelectedTrack] = useState<TrackResult | null>(null)
   const [openAt, setOpenAt] = useState(() =>
     format(addMonths(new Date(), 3), 'yyyy-MM-dd')
   )
-  const [isSubmitting] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  async function handleSubmit() {
+    const newErrors: Record<string, string> = {}
+
+    if (!message.trim()) newErrors.message = 'Escreva uma frase'
+    if (!selectedTrack?.id) newErrors.track = 'Escolha uma música'
+    if (!openAt) newErrors.openAt = 'Escolha uma data'
+
+    if (Object.keys(newErrors).length > 0) return newErrors
+
+    try {
+      setIsSubmitting(true)
+      const trackRes = await fetch('/api/tracks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(selectedTrack),
+      })
+
+      const trackData = await trackRes.json()
+
+      const trackId = trackData.track.id
+    } catch {
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-10">
@@ -47,7 +75,7 @@ export default function NovaPage() {
                 id="message"
                 placeholder="O que você quer lembrar desse momento?"
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={e => setMessage(e.target.value)}
                 maxLength={500}
                 className="min-h-[120px] w-full resize-none rounded-xl border border-gray-400 bg-white px-4 py-3 text-base text-gray-900 outline-none transition-colors duration-150 placeholder:text-gray-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
               />
