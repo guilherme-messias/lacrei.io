@@ -1,3 +1,4 @@
+import AnimatedLockIcon from '@/components/AnimatedLockIcon'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { headers } from 'next/headers'
@@ -20,25 +21,6 @@ type CapsuleResponse = {
 function truncateMessage(message: string, maxLength = 100) {
   if (message.length <= maxLength) return message
   return `${message.slice(0, maxLength)}...`
-}
-
-function LockIcon() {
-  return (
-    <svg
-      aria-hidden
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      className="h-8 w-8 text-white"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-      />
-    </svg>
-  )
 }
 
 async function fetchCapsule(id: string): Promise<CapsuleResponse | null> {
@@ -127,7 +109,7 @@ export default async function Page({
             )}
 
             <div className="absolute inset-0 flex items-center justify-center bg-purple-900/60">
-              <LockIcon />
+              <AnimatedLockIcon />
             </div>
           </div>
 
