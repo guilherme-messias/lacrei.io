@@ -13,7 +13,7 @@ const querySchema = z.object({
 
 const createCapsuleSchema = z.object({
   message: z.string().min(1).max(500).trim(),
-  trackId: z.cuid(),
+  trackId: z.uuid(),
   openAt: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato inválido. Use YYYY-MM-DD'),
