@@ -8,13 +8,24 @@ export function CountdownTimer({ openAt }: CountdownTimerProps) {
   const daysUntilOpen = differenceInDays(openAt, new Date())
 
   if (daysUntilOpen <= 0) {
-    return <span className="text-teal-400 font-medium">Abre hoje</span>
+    return (
+      <div className="flex flex-col items-center gap-1 text-center">
+        <span className="text-[2rem] font-medium leading-none text-purple-50">
+          0
+        </span>
+        <span className="text-xs tracking-wide text-purple-400">Abre hoje</span>
+      </div>
+    )
   }
 
   return (
-    <span className="text-sm text-gray-400">
-      Abre em <strong className="text-white text-lg">{daysUntilOpen}</strong>{' '}
-      {daysUntilOpen === 1 ? 'dia' : 'dias'}
-    </span>
+    <div className="flex flex-col items-center gap-1 text-center">
+      <span className="text-[2rem] font-medium leading-none text-purple-50">
+        {daysUntilOpen}
+      </span>
+      <span className="text-xs tracking-wide text-purple-400">
+        {daysUntilOpen === 1 ? 'dia para abrir' : 'dias para abrir'}
+      </span>
+    </div>
   )
 }
