@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth()
 
@@ -35,15 +35,12 @@ export async function GET(
   }
 
   if (capsule.status === 'sealed') {
-    const { message, ...safeCapsule } = capsule
-    void message
-
     return NextResponse.json(
       {
         capsule: {
-          ...safeCapsule,
+          ...capsule,
           daysUntilOpen: differenceInDays(capsule.openAt, new Date()),
-        } as const,
+        },
       },
       { status: 200 }
     )
@@ -54,7 +51,7 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth()
 

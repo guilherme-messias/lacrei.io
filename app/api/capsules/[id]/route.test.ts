@@ -64,7 +64,7 @@ function createDeleteRequest(capsuleId: string) {
 }
 
 function routeContext(capsuleId: string) {
-  return { params: { id: capsuleId } }
+  return { params: Promise.resolve({ id: capsuleId }) }
 }
 
 describe('/api/capsules/[id]', () => {
@@ -130,7 +130,7 @@ describe('/api/capsules/[id]', () => {
       expect(data).toEqual({ error: 'Não autorizado para acessar esta cápsula' })
     })
 
-    it('deve retornar 200 com cápsula sealed sem message e com daysUntilOpen', async () => {
+    it('deve retornar 200 com cápsula sealed incluindo message e daysUntilOpen', async () => {
       mockAuth().mockResolvedValue({ user: { id: USER_ID } } as Session)
       vi.mocked(prisma.capsule.findUnique).mockResolvedValue(mockCapsuleWithTrack)
 
@@ -139,7 +139,7 @@ describe('/api/capsules/[id]', () => {
 
       expect(res.status).toBe(200)
       const data = await res.json()
-      expect(data.capsule.message).toBeUndefined()
+      expect(data.capsule.message).toBe('Mensagem de teste')
       expect(data.capsule.daysUntilOpen).toBe(
         differenceInDays(mockCapsule.openAt, FIXED_NOW)
       )
