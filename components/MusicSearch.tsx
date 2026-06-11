@@ -2,7 +2,13 @@
 
 import type { SearchTrack } from '@/lib/tracks'
 import Image from 'next/image'
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 
 type DropdownPosition = {
   top: number
@@ -29,10 +35,7 @@ export default function MusicSearch({
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const isDropdownOpen =
-    isFocused &&
-    !selected &&
-    query.length >= 2 &&
-    (isLoading || hasSearched)
+    isFocused && !selected && query.length >= 2 && (isLoading || hasSearched)
 
   const updateDropdownPosition = useCallback(() => {
     const anchor = anchorRef.current
@@ -75,14 +78,8 @@ export default function MusicSearch({
 
   useEffect(() => {
     if (query.length < 2) {
-      setResults([])
-      setIsLoading(false)
-      setHasSearched(false)
       return
     }
-
-    setIsLoading(true)
-    setHasSearched(false)
 
     const timer = setTimeout(() => {
       fetchTracks(query)
@@ -135,7 +132,7 @@ export default function MusicSearch({
     if (isLoading) {
       return (
         <div className="flex flex-col gap-2 p-3">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3].map(i => (
             <div key={i} className="flex items-center gap-3">
               <div className="h-10 w-10 animate-pulse rounded-xl bg-purple-50/20" />
               <div className="flex flex-1 flex-col gap-1">
@@ -151,7 +148,7 @@ export default function MusicSearch({
     if (results.length > 0) {
       return (
         <ul>
-          {results.map((track) => (
+          {results.map(track => (
             <li key={track.deezerId ?? track.musicbrainzId}>
               <button
                 type="button"
@@ -238,7 +235,17 @@ export default function MusicSearch({
           <input
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={e => {
+              setQuery(e.target.value)
+              if (e.target.value.length > 2) {
+                setResults([])
+                setIsLoading(false)
+                setHasSearched(false)
+              } else {
+                setIsLoading(true)
+                setHasSearched(false)
+              }
+            }}
             onFocus={() => setIsFocused(true)}
             placeholder="Buscar música..."
             className="w-full rounded-xl border border-gray-400 bg-white px-4 py-3 text-base text-gray-900 outline-none transition-colors duration-150 placeholder:text-gray-400 focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
