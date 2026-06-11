@@ -49,10 +49,13 @@ export default function Page() {
       })
 
       if (!trackRes.ok) {
+        const trackError = await trackRes.json().catch(() => null)
+        console.error('[nova] erro ao salvar música:', trackRes.status, trackError)
         throw new Error('Erro ao salvar música')
       }
 
       const trackId = (await trackRes.json()).track.id
+      console.log('[nova] track salva, criando cápsula:', { trackId, openAt })
 
       const capsuleRes = await fetch('/api/capsules', {
         method: 'POST',
@@ -67,13 +70,17 @@ export default function Page() {
       })
 
       if (!capsuleRes.ok) {
+        const capsuleError = await capsuleRes.json().catch(() => null)
+        console.error('[nova] erro ao criar cápsula:', capsuleRes.status, capsuleError)
         throw new Error('Erro ao criar cápsula')
       }
 
       const capsuleData = (await capsuleRes.json()) as CapsuleResponse
+      console.log('[nova] cápsula criada:', capsuleData.capsule.id)
 
       router.push(`/nova/confirmacao?id=${capsuleData.capsule.id}`)
-    } catch {
+    } catch (err) {
+      console.error('[nova] falha no submit:', err)
       setError('Algo deu errado. Tente novamente.')
     } finally {
       setIsSubmitting(false)
