@@ -1,6 +1,16 @@
-export type DeezerResult = {
+type DeezerResult = {
   albumCoverUrl: string | null
   deezerId: string | null
+}
+
+type DeezerApiArtist = { name: string }
+type DeezerApiAlbum = { title?: string; cover_medium?: string }
+type DeezerApiTrack = {
+  id: number
+  title: string
+  duration?: number
+  artist: DeezerApiArtist
+  album?: DeezerApiAlbum
 }
 
 export async function getCoverFromDeezer(
@@ -56,7 +66,7 @@ export async function searchDeezer(
   const data = await res.json()
   if (!data.data || data.data.length === 0) return []
 
-  return data.data.map((item: any) => ({
+  return data.data.map((item: DeezerApiTrack) => ({
     musicbrainzId: null,
     deezerId: String(item.id),
     title: item.title,
