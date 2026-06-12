@@ -30,7 +30,7 @@ export default function DeliveryEmail({
   albumCoverUrl = 'https://e-cdns-images.dzcdn.net/images/cover/2e018122cb5698622112a1a27a45a10c/250x250-000000-80-0-0.jpg',
   message = 'Esta música me lembra do verão de 2020, quando tudo parecia possível.',
   createdAt = '10 de junho de 2024',
-  appUrl = 'https://lacrei.io',
+  appUrl = 'https://lacrei-io.vercel.app/nova',
 }: DeliveryEmailProps) {
   const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(`${trackTitle} ${artistName}`)}`
 

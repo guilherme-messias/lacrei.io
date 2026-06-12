@@ -30,7 +30,7 @@ export default function ConfirmationEmail({
   albumCoverUrl = 'https://e-cdns-images.dzcdn.net/images/cover/2e018122cb5698622112a1a27a45a10c/250x250-000000-80-0-0.jpg',
   message = 'Esta música me lembra do verão de 2020, quando tudo parecia possível.',
   openAt = '15 de janeiro de 2025',
-  dashboardUrl = 'https://lacrei.io/dashboard',
+  dashboardUrl = 'https://lacrei-io.vercel.app/diario',
 }: ConfirmationEmailProps) {
   return (
     <Html lang="pt-BR">
