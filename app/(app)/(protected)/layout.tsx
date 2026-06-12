@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import logo from '@/public/logo.svg'
 import Link from 'next/link'
 import Image from 'next/image'
+import { UserMenu } from '@/components/UserMenu'
 
 export default async function ProtectedLayout({
   children,
@@ -33,22 +34,11 @@ export default async function ProtectedLayout({
           </Link>
 
           <div className="flex items-center gap-4 sm:gap-6">
-            <div className="flex items-center gap-3">
-              {session.user.image && (
-                <Image
-                  src={session.user.image}
-                  alt=""
-                  width={40}
-                  height={40}
-                  className="h-10 w-10 rounded-full object-cover"
-                />
-              )}
-              {session.user.name && (
-                <span className="hidden text-sm font-medium text-purple-50/80 sm:inline">
-                  {session.user.name}
-                </span>
-              )}
-            </div>
+            <UserMenu
+              name={session.user.name}
+              image={session.user.image}
+              email={session.user.email}
+            />
             <Link href="/nova">
               <button
                 type="button"
