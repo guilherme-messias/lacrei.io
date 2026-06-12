@@ -21,7 +21,7 @@ export async function sendConfirmationEmail(capsule: CapsuleWithTrackAndUser) {
       albumCoverUrl: capsule.track.albumCoverUrl,
       message: capsule.message,
       openAt: capsule.openAt.toLocaleDateString('pt-BR'),
-      dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+      dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/diario`,
     }),
   })
 }
@@ -38,7 +38,7 @@ export async function sendDeliveryEmail(capsule: CapsuleWithTrackAndUser) {
       albumCoverUrl: capsule.track.albumCoverUrl,
       message: capsule.message,
       createdAt: capsule.createdAt.toLocaleDateString('pt-BR'),
-      appUrl: `${process.env.NEXT_PUBLIC_APP_URL}`,
+      appUrl: `${process.env.NEXT_PUBLIC_APP_URL}/nova`,
     }),
   })
 }
