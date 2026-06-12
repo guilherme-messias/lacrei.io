@@ -1,6 +1,6 @@
 import type { NextAuthConfig } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
-import SpotifyProvider from 'next-auth/providers/spotify'
+import DiscordProvider from 'next-auth/providers/discord'
 
 export const authConfig = {
   providers: [
@@ -9,9 +9,9 @@ export const authConfig = {
       clientSecret: process.env.AUTH_GOOGLE_SECRET ?? '',
       allowDangerousEmailAccountLinking: true,
     }),
-    SpotifyProvider({
-      clientId: process.env.AUTH_SPOTIFY_ID ?? '',
-      clientSecret: process.env.AUTH_SPOTIFY_SECRET ?? '',
+    DiscordProvider({
+      clientId: process.env.AUTH_DISCORD_ID ?? '',
+      clientSecret: process.env.AUTH_DISCORD_SECRET ?? '',
       allowDangerousEmailAccountLinking: true,
     }),
   ],
