@@ -94,7 +94,6 @@ export default function MusicSearch({
 
   useLayoutEffect(() => {
     if (!isDropdownOpen) {
-      setDropdownPosition(null)
       return
     }
 
