@@ -8,11 +8,13 @@ export const authConfig = {
       clientId: process.env.AUTH_GOOGLE_ID ?? '',
       clientSecret: process.env.AUTH_GOOGLE_SECRET ?? '',
       allowDangerousEmailAccountLinking: true,
+      checks: ['nonce'],
     }),
     DiscordProvider({
       clientId: process.env.AUTH_DISCORD_ID ?? '',
       clientSecret: process.env.AUTH_DISCORD_SECRET ?? '',
       allowDangerousEmailAccountLinking: true,
+      checks: ['nonce'],
     }),
   ],
   pages: {
