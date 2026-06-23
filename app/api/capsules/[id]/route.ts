@@ -72,6 +72,13 @@ export async function DELETE(
     )
   }
 
+  if (capsule.userId !== session.user.id) {
+    return NextResponse.json(
+      { error: 'Não autorizado para deletar esta cápsula' },
+      { status: 403 }
+    )
+  }
+
   if (capsule.status === 'delivered') {
     return NextResponse.json(
       { error: 'Cápsulas já entregues não podem ser excluídas' },

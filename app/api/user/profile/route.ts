@@ -12,7 +12,10 @@ export async function GET() {
   const userId = session.user.id
 
   const [user, total, sealed, delivered] = await Promise.all([
-    prisma.user.findUnique({ where: { id: userId } }),
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true, image: true },
+    }),
     prisma.capsule.count({ where: { userId } }),
     prisma.capsule.count({ where: { userId, status: 'sealed' } }),
     prisma.capsule.count({ where: { userId, status: 'delivered' } }),
@@ -22,5 +25,14 @@ export async function GET() {
     return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
   }
 
-  return NextResponse.json({ user: { ...user, stats: { totalCapsules: total, sealedCapsules: sealed, deliveredCapsules: delivered } } }, { status: 200 })
+  return NextResponse.json({
+    user: {
+      ...user,
+      stats: {
+        totalCapsules: total,
+        sealedCapsules: sealed,
+        deliveredCapsules: delivered,
+      },
+    },
+  })
 }

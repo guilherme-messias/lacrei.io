@@ -18,16 +18,11 @@ import { prisma } from '@/lib/prisma'
 import { GET } from './route'
 
 const USER_ID = 'user-123'
-const FIXED_NOW = new Date('2026-06-07T12:00:00.000Z')
 
 const mockUser = {
-  id: USER_ID,
   name: 'João Silva',
   email: 'joao@example.com',
-  emailVerified: FIXED_NOW,
   image: 'https://example.com/avatar.jpg',
-  createdAt: FIXED_NOW,
-  updatedAt: FIXED_NOW,
 }
 
 describe('/api/user/profile', () => {
@@ -72,6 +67,7 @@ describe('/api/user/profile', () => {
       expect(data).toEqual({ error: 'Usuário não encontrado' })
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { id: USER_ID },
+        select: { name: true, email: true, image: true },
       })
     })
 
@@ -89,9 +85,6 @@ describe('/api/user/profile', () => {
       const data = await res.json()
       expect(data.user).toEqual({
         ...mockUser,
-        emailVerified: mockUser.emailVerified.toISOString(),
-        createdAt: mockUser.createdAt.toISOString(),
-        updatedAt: mockUser.updatedAt.toISOString(),
         stats: {
           totalCapsules: 10,
           sealedCapsules: 6,
@@ -101,6 +94,7 @@ describe('/api/user/profile', () => {
 
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { id: USER_ID },
+        select: { name: true, email: true, image: true },
       })
       expect(prisma.capsule.count).toHaveBeenCalledTimes(3)
       expect(prisma.capsule.count).toHaveBeenCalledWith({
