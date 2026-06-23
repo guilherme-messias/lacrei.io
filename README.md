@@ -4,6 +4,14 @@
 
 **Lacrei.io** é um diário musical baseado em cápsulas do tempo: cada entrada fica "lacrada" até a data de abertura, quando o usuário recebe um e-mail com o que guardou — música, capa do álbum e frase escrita no passado.
 
+## Como funciona
+
+1. **Escolha uma música e escreva uma frase** — o usuário busca uma faixa (via MusicBrainz/Deezer) e registra o que quer lembrar daquele momento.
+2. **Defina quando quer receber de volta** — a data de abertura deve ser pelo menos 7 dias no futuro.
+3. **Receba o momento no futuro por e-mail** — quando a data chega, a cápsula é entregue automaticamente na caixa de entrada.
+
+O fluxo completo passa por login (Google ou Discord), criação em `/nova`, confirmação na tela e no e-mail, acompanhamento no diário (`/diario`) e, por fim, a entrega no dia marcado.
+
 ## Stack
 
 | Tecnologia                                                 | Uso                                |
