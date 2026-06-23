@@ -83,12 +83,12 @@ O fluxo completo passa por login (Google ou Discord), criação em `/nova`, conf
 | `MUSICBRAINZ_USER_AGENT` | User-Agent obrigatório para a API do MusicBrainz (formato: `App/versão (email)`) | Defina manualmente, ex.: `Lacrei/1.0 (seu@email.com)` — veja [política de uso](https://musicbrainz.org/doc/MusicBrainz_API#Provide_meaningful_User-Agent_strings) |
 | `CRON_SECRET`            | Token de autenticação do endpoint de entrega agendada (`/api/cron/deliver`)      | Gere com `openssl rand -base64 32` e configure o mesmo valor no cron da Vercel                                                                                    |
 
-## Screenshots
+## Telas
 
 ### Tela de criação de cápsula
 
-<!-- Adicione o screenshot aqui -->
+![Tela de criação](./docs/screenshots/criacao.png)
 
 ### E-mail de entrega
 
-<!-- Adicione o screenshot aqui -->
+![Template E-mail de Entrega](./docs/screenshots/email-entrega.png)
