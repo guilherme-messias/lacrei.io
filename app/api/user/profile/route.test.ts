@@ -89,6 +89,9 @@ describe('/api/user/profile', () => {
       const data = await res.json()
       expect(data.user).toEqual({
         ...mockUser,
+        emailVerified: mockUser.emailVerified.toISOString(),
+        createdAt: mockUser.createdAt.toISOString(),
+        updatedAt: mockUser.updatedAt.toISOString(),
         stats: {
           totalCapsules: 10,
           sealedCapsules: 6,
