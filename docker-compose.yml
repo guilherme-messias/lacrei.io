@@ -1,0 +1,12 @@
+services:
+  lacrei-db:
+    container_name: lacrei-db
+    image: postgres:17
+    environment:
+      POSTGRES_USER: lacrei_user
+      POSTGRES_PASSWORD: lacrei_password
+      POSTGRES_DB: lacrei_db
+    ports:
+      - '5434:5432'
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data

@@ -6,6 +6,8 @@
     "postinstall": "prisma generate",
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
