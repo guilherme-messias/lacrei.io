@@ -20,9 +20,13 @@ import { GET } from './route'
 const USER_ID = 'user-123'
 
 const mockUser = {
+  id: USER_ID,
   name: 'João Silva',
   email: 'joao@example.com',
   image: 'https://example.com/avatar.jpg',
+  emailVerified: new Date(),
+  createdAt: new Date(),
+  updatedAt: new Date(),
 }
 
 describe('/api/user/profile', () => {
