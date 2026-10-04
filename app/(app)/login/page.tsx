@@ -2,7 +2,6 @@
 
 import { signIn } from 'next-auth/react'
 import Image from 'next/image'
-import logo from '@/public/logo.svg'
 import { use } from 'react'
 
 function GoogleIcon() {
@@ -63,7 +62,7 @@ export default function Page({
     <div className="flex min-h-screen flex-col items-center justify-center px-4 py-20">
       <div className="flex w-full max-w-sm flex-col items-center gap-10">
         <Image
-          src={logo}
+          src="/logo.svg"
           alt="Lacrei"
           width={96}
           height={96}

@@ -1,6 +1,5 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import logo from '@/public/logo.svg'
 
 const steps = [
   {
@@ -96,7 +95,7 @@ export default function HomePage() {
         <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-20 sm:px-6">
           <div className="flex w-full max-w-2xl flex-col items-center gap-10 text-center">
             <Image
-              src={logo}
+              src="/logo.svg"
               alt="Lacrei"
               width={72}
               height={72}
