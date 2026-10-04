@@ -1,6 +1,5 @@
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
-import logo from '@/public/logo.svg'
 import Link from 'next/link'
 import Image from 'next/image'
 import { UserMenu } from '@/components/UserMenu'
@@ -25,7 +24,7 @@ export default async function ProtectedLayout({
             className="transition-opacity duration-200 ease-in-out hover:opacity-80"
           >
             <Image
-              src={logo}
+              src="/logo.svg"
               alt="Lacrei"
               width={100}
               height={100}
